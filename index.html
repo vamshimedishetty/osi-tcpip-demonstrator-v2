@@ -132,6 +132,13 @@
   .layer.active[data-l="5"]{ background:#fff7ed;} .layer.active[data-l="4"]{ background:#f0fdfa;}
   .layer.active[data-l="3"]{ background:#eff6ff;} .layer.active[data-l="2"]{ background:#f0fdf4;}
   .layer.active[data-l="1"]{ background:#f1f5f9;}
+  .stackswap[hidden]{ display:none !important; }
+  .layer[data-g="app"]{ border-color:var(--l7);} .layer[data-g="transport"]{ border-color:var(--l4);}
+  .layer[data-g="network"]{ border-color:var(--l3);} .layer[data-g="datalink"]{ border-color:var(--l2);}
+  .layer[data-g="physical"]{ border-color:var(--l1);}
+  .layer.active[data-g="app"]{ background:#f5f3ff;} .layer.active[data-g="transport"]{ background:#f0fdfa;}
+  .layer.active[data-g="network"]{ background:#eff6ff;} .layer.active[data-g="datalink"]{ background:#f0fdf4;}
+  .layer.active[data-g="physical"]{ background:#f1f5f9;}
 
   /* ---------- PDU / envelope stack ---------- */
   .pduwrap{ min-height:170px; display:flex; flex-direction:column; justify-content:center; }
@@ -315,7 +322,7 @@
     <label for="modelSelect">Choose the model:</label>
     <select id="modelSelect">
       <option value="osi" selected>OSI Model (7 layers)</option>
-      <option value="tcpip">TCP/IP Model (4 layers)</option>
+      <option value="tcpip">TCP/IP Model (5 layers)</option>
     </select>
   </div>
   <div class="models-grid">
@@ -326,18 +333,19 @@
           <button type="button" class="mrow" data-osi="6" style="--c:var(--l6)"><span class="mno">6</span><span class="mnm">Presentation</span><span class="munit">unit: Data</span><span class="mtag">TCP/IP: Application</span></button>
           <button type="button" class="mrow" data-osi="5" style="--c:var(--l5)"><span class="mno">5</span><span class="mnm">Session</span><span class="munit">unit: Data</span><span class="mtag">TCP/IP: Application</span></button>
           <button type="button" class="mrow" data-osi="4" style="--c:var(--l4)"><span class="mno">4</span><span class="mnm">Transport</span><span class="munit">unit: Segment</span><span class="mtag">TCP/IP: Transport</span></button>
-          <button type="button" class="mrow" data-osi="3" style="--c:var(--l3)"><span class="mno">3</span><span class="mnm">Network</span><span class="munit">unit: Packet</span><span class="mtag">TCP/IP: Internet</span></button>
-          <button type="button" class="mrow" data-osi="2" style="--c:var(--l2)"><span class="mno">2</span><span class="mnm">Data Link</span><span class="munit">unit: Frame</span><span class="mtag">TCP/IP: Network Access</span></button>
-          <button type="button" class="mrow" data-osi="1" style="--c:var(--l1)"><span class="mno">1</span><span class="mnm">Physical</span><span class="munit">unit: Bits</span><span class="mtag">TCP/IP: Network Access</span></button>
+          <button type="button" class="mrow" data-osi="3" style="--c:var(--l3)"><span class="mno">3</span><span class="mnm">Network</span><span class="munit">unit: Packet</span><span class="mtag">TCP/IP: Network</span></button>
+          <button type="button" class="mrow" data-osi="2" style="--c:var(--l2)"><span class="mno">2</span><span class="mnm">Data Link</span><span class="munit">unit: Frame</span><span class="mtag">TCP/IP: Data Link</span></button>
+          <button type="button" class="mrow" data-osi="1" style="--c:var(--l1)"><span class="mno">1</span><span class="mnm">Physical</span><span class="munit">unit: Bits</span><span class="mtag">TCP/IP: Physical</span></button>
         </div>
       <div id="stackTcpip" class="stackcol" hidden>
-          <h3>TCP/IP model · 4 layers</h3>
+          <h3>TCP/IP model · 5 layers</h3>
           <button type="button" class="mrow grow3" data-tcpip="app" style="--c:var(--l7)"><span class="mnm">Application</span><span class="mtag">OSI 7 · 6 · 5</span></button>
           <button type="button" class="mrow grow1" data-tcpip="transport" style="--c:var(--l4)"><span class="mnm">Transport</span><span class="mtag">OSI 4</span></button>
-          <button type="button" class="mrow grow1" data-tcpip="internet" style="--c:var(--l3)"><span class="mnm">Internet</span><span class="mtag">OSI 3</span></button>
-          <button type="button" class="mrow grow2" data-tcpip="netaccess" style="--c:var(--l2)"><span class="mnm">Network Access</span><span class="mtag">OSI 2 · 1</span></button>
+          <button type="button" class="mrow grow1" data-tcpip="network" style="--c:var(--l3)"><span class="mnm">Network</span><span class="mtag">OSI 3</span></button>
+          <button type="button" class="mrow grow1" data-tcpip="datalink" style="--c:var(--l2)"><span class="mnm">Data Link</span><span class="mtag">OSI 2</span></button>
+          <button type="button" class="mrow grow1" data-tcpip="physical" style="--c:var(--l1)"><span class="mnm">Physical</span><span class="mtag">OSI 1</span></button>
       </div>
-      <p class="mapnote">Both models describe the <b>same journey</b> — the TCP/IP model just merges some floors into one: OSI <b>7 + 6 + 5 → Application</b> · OSI <b>4 → Transport</b> · OSI <b>3 → Internet</b> · OSI <b>2 + 1 → Network Access</b>. Every row carries the other model's name as a tag. Tap any layer in the stack to see what it does.</p>
+      <p class="mapnote">Both models describe the <b>same journey</b> — the TCP/IP model just merges some floors into one: OSI <b>7 + 6 + 5 → Application</b> · OSI <b>4 → Transport</b> · OSI <b>3 → Network</b> · OSI <b>2 → Data Link</b> · OSI <b>1 → Physical</b>. Every row carries the other model's name as a tag. Tap any layer in the stack to see what it does.</p>
     </div>
     <div>
       <div class="jpacket">
@@ -365,6 +373,7 @@
     <h2>Sender — Encapsulation</h2>
     <div class="dir">message goes DOWN ↓</div>
     <div id="senderStack"></div>
+    <div id="senderStackT" class="stackswap" hidden></div>
   </div>
 
   <!-- RECEIVER -->
@@ -372,6 +381,7 @@
     <h2>Receiver — Decapsulation</h2>
     <div class="dir">message comes UP ↑</div>
     <div id="receiverStack"></div>
+    <div id="receiverStackT" class="stackswap" hidden></div>
   </div>
 </div>
 
@@ -394,8 +404,9 @@
   <b>OSI → TCP/IP mapping (both models, one journey):</b>
   <span>Application + Presentation + Session → <b>Application</b></span>
   <span>Transport → <b>Transport</b></span>
-  <span>Network → <b>Internet</b></span>
-  <span>Data Link + Physical → <b>Network Access</b></span>
+  <span>Network → <b>Network</b></span>
+  <span>Data Link → <b>Data Link</b></span>
+  <span>Physical → <b>Physical</b></span>
 </div>
 
 <footer>Software simulation, as given in the assignment sheet. Headers are illustrative text labels — in a real network the same information (ports, IPs, MACs, CRC) travels as binary fields. Values match the tested Python version exactly. Keyboard: → / Space = next step.</footer>
@@ -419,9 +430,9 @@ const LAYERS=[
   {no:6, name:"Presentation", tcpip:"Application",    unit:"Data",    cls:"b6"},
   {no:5, name:"Session",      tcpip:"Application",    unit:"Data",    cls:"b5"},
   {no:4, name:"Transport (TCP)", tcpip:"Transport",   unit:"Segment", cls:"b4"},
-  {no:3, name:"Network (IP)", tcpip:"Internet",       unit:"Packet",  cls:"b3"},
-  {no:2, name:"Data Link",    tcpip:"Network Access", unit:"Frame",   cls:"b2"},
-  {no:1, name:"Physical",     tcpip:"Network Access", unit:"Bits",    cls:"b1"},
+  {no:3, name:"Network (IP)", tcpip:"Network",        unit:"Packet",  cls:"b3"},
+  {no:2, name:"Data Link",    tcpip:"Data Link",      unit:"Frame",   cls:"b2"},
+  {no:1, name:"Physical",     tcpip:"Physical",       unit:"Bits",    cls:"b1"},
 ];
 function buildStack(elId){
   const el=document.getElementById(elId);
@@ -431,12 +442,30 @@ function buildStack(elId){
 }
 buildStack("senderStack"); buildStack("receiverStack");
 
+// ---- TCP/IP (5-layer) stacks for the sender / receiver panels: same journey, grouped rows ----
+// groups: Application = OSI 7+6+5 · Transport = OSI 4 · Network = OSI 3 · Data Link = OSI 2 · Physical = OSI 1
+const TCPIP_STACK=[
+  {key:"app",       name:"Application", unit:"Data"},
+  {key:"transport", name:"Transport",   unit:"Segment"},
+  {key:"network",   name:"Network",     unit:"Packet"},
+  {key:"datalink",  name:"Data Link",   unit:"Frame"},
+  {key:"physical",  name:"Physical",    unit:"Bits"},
+];
+const TCPIP_GROUPS={app:[7,6,5], transport:[4], network:[3], datalink:[2], physical:[1]};
+function buildTcpipStack(elId){
+  const el=document.getElementById(elId);
+  el.innerHTML=TCPIP_STACK.map(l=>`<div class="layer tlayer" data-g="${l.key}" id="${elId}-${l.key}">
+    <div><div class="nm">${l.name}</div><div class="unit">unit: ${l.unit}</div></div></div>`).join("");
+}
+buildTcpipStack("senderStackT"); buildTcpipStack("receiverStackT");
+
 // ---- tappable layers: detail card data ----
 const LAYER_COLORS={7:"#7c3aed",6:"#db2777",5:"#ea580c",4:"#0d9488",3:"#2563eb",2:"#16a34a",1:"#475569"};
 const LAYER_INFO={
   7:{badge:"7", title:"Layer 7 · Application (OSI)", rows:[
     ["What it does","Gives network services to the programs you use — browser, email app. This is where the message is created."],
     ["Header it adds","[AH: HTTP] — AH = Application Header · HTTP = HyperText Transfer Protocol"],
+    ["Size in our run","The AH label adds 11 bytes = 88 bits"],
     ["Data unit","Data"],
     ["Real-world size","No fixed size — an HTTP header is usually a few hundred bytes"],
     ["Protocols","HTTP, HTTPS, DNS, SMTP, FTP"],
@@ -444,6 +473,7 @@ const LAYER_INFO={
   6:{badge:"6", title:"Layer 6 · Presentation (OSI)", rows:[
     ["What it does","Puts the data into an agreed format (text encoding), and handles encryption and compression, so the other side can read it."],
     ["Header it adds","[PH: UTF-8] — PH = Presentation Header"],
+    ["Size in our run","The PH label adds 12 bytes = 96 bits"],
     ["Data unit","Data"],
     ["Real-world size","No separate header in real networks"],
     ["Examples","UTF-8 text, JPEG, MP3, SSL/TLS encryption"],
@@ -451,34 +481,39 @@ const LAYER_INFO={
   5:{badge:"5", title:"Layer 5 · Session (OSI)", rows:[
     ["What it does","Opens, manages and closes the conversation (the session) between the two computers, and keeps different conversations from mixing up."],
     ["Header it adds","[SH: Session=101] — SH = Session Header"],
+    ["Size in our run","The SH label adds 18 bytes = 144 bits"],
     ["Data unit","Data"],
     ["Real-world size","No separate header in real networks"],
     ["Remember it as","A chairperson starting and ending a meeting — or your login session on a website"]]},
   4:{badge:"4", title:"Layer 4 · Transport (OSI)", rows:[
     ["What it does","Delivers the data end-to-end between the right PROGRAMS on the two computers, using port numbers. TCP (Transmission Control Protocol) is reliable: sequence numbers, acknowledgements, and resending lost pieces. UDP (User Datagram Protocol) is fast, with no guarantee."],
     ["Header it adds","[TH: SrcPort=54321 DstPort=80 Seq=1] — TH = Transport Header"],
+    ["Size in our run","The TH label adds 37 bytes = 296 bits"],
     ["Data unit","Segment (TCP) / Datagram (UDP)"],
-    ["Real-world size","TCP header 20 bytes · UDP header 8 bytes"],
+    ["Real-world size","TCP header 20 bytes = 160 bits · UDP header 8 bytes = 64 bits"],
     ["Remember it as","The flat number after the building address — it gets the letter to the right person inside"]]},
   3:{badge:"3", title:"Layer 3 · Network (OSI)", rows:[
     ["What it does","Adds IP (Internet Protocol) addresses and chooses the path across different networks — this is routing. It is the only layer that can carry data from one network to another."],
     ["Header it adds","[NH: SrcIP=192.168.1.10 DstIP=192.168.1.20] — NH = Network Header"],
+    ["Size in our run","The NH label adds 44 bytes = 352 bits"],
     ["Data unit","Packet"],
-    ["Real-world size","IPv4 header 20 bytes (IPv6: 40 bytes)"],
+    ["Real-world size","IPv4 header 20 bytes = 160 bits (IPv6: 40 bytes = 320 bits)"],
     ["Works on","The ROUTER"],
     ["Remember it as","The full city + building address on a letter"]]},
   2:{badge:"2", title:"Layer 2 · Data Link (OSI)", rows:[
     ["What it does","Delivers the frame on the SAME local network, using MAC (Media Access Control — hardware) addresses, and adds the CRC (Cyclic Redundancy Check) trailer so the receiver can detect damage."],
     ["Header it adds","[DH: SrcMAC=AA:BB:CC:11:22:33 DstMAC=DD:EE:FF:44:55:66] — DH = Data Link Header · and trailer [DT: CRC=7E9EAA81] — DT = Data Link Trailer · CRC = Cyclic Redundancy Check"],
+    ["Size in our run","DH header label: 55 bytes = 440 bits · DT trailer label: 18 bytes = 144 bits — together the frame grows by 75 bytes = 600 bits"],
     ["Data unit","Frame"],
-    ["Real-world size","Header 14 bytes · trailer (CRC — Cyclic Redundancy Check) 4 bytes"],
+    ["Real-world size","Header 14 bytes = 112 bits · trailer (CRC — Cyclic Redundancy Check) 4 bytes = 32 bits"],
     ["Works on","The SWITCH"],
     ["Remember it as","The postman who knows every house on his own street"]]},
   1:{badge:"1", title:"Layer 1 · Physical (OSI)", rows:[
     ["What it does","Turns the whole frame into bits — 0s and 1s — and sends them as signals on the wire (or as light or radio waves). It adds NO header."],
     ["Header it adds","None — this layer adds nothing"],
+    ["Size in our run","Adds no header — 0 bits added. It converts the whole frame — 210 bytes — into 1,680 bits on the wire"],
     ["Data unit","Bits"],
-    ["Real-world size","No header at all. In our run, 210 characters become 1,680 bits"],
+    ["Real-world size","No header at all. In our run, 210 bytes become 1,680 bits"],
     ["Works on","Cables, hub"],
     ["Remember it as","The paper the letter is written on, and the truck that physically carries it"]]},
 };
@@ -486,20 +521,19 @@ const TCPIP_INFO={
   app:{badge:"A", color:"#7c3aed", title:"TCP/IP · Application — OSI Layers 7 + 6 + 5 combined", rows:[
     ["What it does","Three OSI jobs done by one TCP/IP layer: (1) Application — network services for your programs, where the message is created. (2) Presentation — agreed format, encryption and compression. (3) Session — opens, manages and closes the conversation."],
     ["Headers it adds","[AH: HTTP] · [PH: UTF-8] · [SH: Session=101] — AH = Application Header · PH = Presentation Header · SH = Session Header · HTTP = HyperText Transfer Protocol"],
+    ["Size in our run","AH adds 11 bytes = 88 bits · PH adds 12 bytes = 96 bits · SH adds 18 bytes = 144 bits"],
     ["Data unit","Data"],
-    ["Real-world size","No fixed size"],
+    ["Real-world size","No fixed size — an HTTP header varies, usually a few hundred bytes"],
     ["Remember it as","One combined top floor doing three jobs"]]},
   transport:{badge:"T", color:"#0d9488", title:"TCP/IP · Transport — the same as OSI Layer 4", rows:null},
-  internet:{badge:"I", color:"#2563eb", title:"TCP/IP · Internet — the same as OSI Layer 3", rows:null},
-  netaccess:{badge:"N", color:"#16a34a", title:"TCP/IP · Network Access — OSI Layers 2 + 1 combined", rows:[
-    ["What it does","Two OSI jobs done by one TCP/IP layer: (1) Data Link — MAC (Media Access Control) addresses and the CRC (Cyclic Redundancy Check) trailer, delivering on the same local network (the switch's job). (2) Physical — turning the frame into bits on the wire, adding no header."],
-    ["Headers it adds","[DH: SrcMAC=AA:BB:CC:11:22:33 DstMAC=DD:EE:FF:44:55:66] — DH = Data Link Header · and trailer [DT: CRC=7E9EAA81] — DT = Data Link Trailer"],
-    ["Data unit","Frame, then Bits"],
-    ["Real-world size","Header 14 bytes · trailer (CRC — Cyclic Redundancy Check) 4 bytes · Physical adds nothing"],
-    ["Remember it as","The postman on his street, plus the paper and the truck"]]},
+  network:{badge:"N", color:"#2563eb", title:"TCP/IP · Network — the same as OSI Layer 3", rows:null},
+  datalink:{badge:"D", color:"#16a34a", title:"TCP/IP · Data Link — the same as OSI Layer 2", rows:null},
+  physical:{badge:"P", color:"#475569", title:"TCP/IP · Physical — the same as OSI Layer 1", rows:null},
 };
 TCPIP_INFO.transport.rows=LAYER_INFO[4].rows;
-TCPIP_INFO.internet.rows=LAYER_INFO[3].rows;
+TCPIP_INFO.network.rows=LAYER_INFO[3].rows;
+TCPIP_INFO.datalink.rows=LAYER_INFO[2].rows;
+TCPIP_INFO.physical.rows=LAYER_INFO[1].rows;
 
 let pinned=null; // null = card follows the demo · {osi:n} / {tcpip:key} = the layer the user tapped
 let modelMode="osi"; // which model the models section is showing: "osi" or "tcpip"
@@ -523,11 +557,11 @@ function showCard(key){
   const sel = key.osi ? document.querySelector(`.mrow[data-osi="${key.osi}"]`) : document.querySelector(`.mrow[data-tcpip="${key.tcpip}"]`);
   if(sel) sel.classList.add("sel");
 }
-const TCPIP_KEY_BY_NAME={"Application":"app","Transport":"transport","Internet":"internet","Network Access":"netaccess"};
+const TCPIP_KEY_BY_NAME={"Application":"app","Transport":"transport","Network":"network","Data Link":"datalink","Physical":"physical"};
 function currentDemoKey(){
   if(modelMode==="tcpip"){
     const s=steps[idx<0?0:idx];
-    if(s.travel) return {tcpip:"netaccess"};
+    if(s.travel) return {tcpip:"physical"};
     if(s.done) return {tcpip:"app"};
     return {tcpip: TCPIP_KEY_BY_NAME[s.tcpip] || "app"};
   }
@@ -562,11 +596,15 @@ function syncJourney(){
   $("jstatus").textContent = modelMode==="tcpip" ? tcpStatus : osiStatus;
 }
 
+// ---- one size format for both packet panels: bytes AND bits (bits = bytes × 8) ----
+const fmtN=n=>n.toLocaleString("en-US");
+const sizeText=s=>fmtN(s.chars)+" bytes = "+fmtN(s.chars*8)+" bits";
+
 // ---- models-section packet view: the very same header blocks as the main PDU panel, so the packet is visible at every layer ----
 function syncPacket(){
   const s=steps[idx<0?0:idx];
   $("jpacket").innerHTML=s.blocks.map(b=>`<div class="blk ${b.cls}">${b.txt.replace(/</g,"&lt;")}</div>`).join("");
-  $("junit").innerHTML="Now it is a: <b>"+s.unit+"</b>";
+  $("junit").innerHTML="Now it is a: <b>"+s.unit+"</b> · "+sizeText(s);
 }
 
 // ---- model dropdown: show only the chosen model's stack ----
@@ -574,6 +612,10 @@ document.getElementById("modelSelect").addEventListener("change",e=>{
   modelMode=e.target.value;
   document.getElementById("stackOsi").hidden = modelMode!=="osi";
   document.getElementById("stackTcpip").hidden = modelMode!=="tcpip";
+  document.getElementById("senderStack").hidden = modelMode!=="osi";
+  document.getElementById("senderStackT").hidden = modelMode!=="tcpip";
+  document.getElementById("receiverStack").hidden = modelMode!=="osi";
+  document.getElementById("receiverStackT").hidden = modelMode!=="tcpip";
   syncJourney();
   updateCard();
 });
@@ -596,37 +638,37 @@ function buildSteps(msg){
   const B=(cls,txt)=>({cls,txt});
   const full=[B("b2",DH),B("b3",NH),B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg),B("trailer",DT)];
   return [
-    {phase:"START", side:null, layer:null, blocks:[B("msgblk",msg)], unit:"— (just typed)", size:msg.length+" characters", tcpip:"—",
+    {phase:"START", side:null, layer:null, blocks:[B("msgblk",msg)], unit:"— (just typed)", chars:msg.length, tcpip:"—",
      say:`“The user types the message: <b>${msg}</b>. It is born at the top — Layer 7, Application.”`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:7, blocks:[B("b7",AH),B("msgblk",msg)], unit:"Data", size:d7.length+" characters", tcpip:"Application",
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:7, blocks:[B("b7",AH),B("msgblk",msg)], unit:"Data", chars:d7.length, tcpip:"Application",
      say:`<b>Layer 7 · Application</b> adds <b>[AH: HTTP]</b> — which app protocol is used. First envelope on.`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:6, blocks:[B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Data", size:d6.length+" characters", tcpip:"Application",
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:6, blocks:[B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Data", chars:d6.length, tcpip:"Application",
      say:`<b>Layer 6 · Presentation</b> adds <b>[PH: UTF-8]</b> — the data format, so the other side can read it. (In real life: also encryption/compression.)`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:5, blocks:[B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Data", size:d5.length+" characters", tcpip:"Application",
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:5, blocks:[B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Data", chars:d5.length, tcpip:"Application",
      say:`<b>Layer 5 · Session</b> adds <b>[SH: Session=${SESSION_ID}]</b> — it opens the conversation and gives it a number, so dialogues don't mix up.`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:4, blocks:[B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Segment", size:d4.length+" characters", tcpip:"Transport",
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:4, blocks:[B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Segment", chars:d4.length, tcpip:"Transport",
      say:`<b>Layer 4 · Transport</b> adds <b>port numbers</b> — which program on each computer. Port 80 = web. From here the data is called a <b>Segment</b>.`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:3, blocks:[B("b3",NH),B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Packet", size:d3.length+" characters", tcpip:"Internet",
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:3, blocks:[B("b3",NH),B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Packet", chars:d3.length, tcpip:"Network",
      say:`<b>Layer 3 · Network</b> adds <b>IP addresses</b> — which computer, anywhere in the network. Now it is a <b>Packet</b>. Routers will read only this label.`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:2, blocks:full, unit:"Frame", size:frame.length+" characters", tcpip:"Network Access",
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:2, blocks:full, unit:"Frame", chars:frame.length, tcpip:"Data Link",
      say:`<b>Layer 2 · Data Link</b> adds <b>MAC addresses</b> for the next direct hop, plus the <b>CRC trailer at the END</b> — a number calculated from the whole frame, to catch damage. Now it is a <b>Frame</b>. That is encapsulation complete: 6 labels wrapped around one message.`},
-    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:1, blocks:full, unit:"Bits", size:bits.length+" bits", tcpip:"Network Access", bits:bits,
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:1, blocks:full, unit:"Bits", chars:frame.length, tcpip:"Physical", bits:bits,
      say:`<b>Layer 1 · Physical</b> adds nothing — it converts the whole frame into <b>bits, ${bits.length} of them</b>. This bit stream is the only thing that really travels on the wire.`},
-    {phase:"TRAVEL →", side:null, layer:null, blocks:full, unit:"Bits (on the wire)", size:bits.length+" bits", tcpip:"Network Access", travel:true,
+    {phase:"TRAVEL →", side:null, layer:null, blocks:full, unit:"Bits (on the wire)", chars:frame.length, tcpip:"Physical", travel:true,
      say:`The bits travel: <b>Switches forward by MAC (Layer 2)</b>, the <b>Router forwards by IP (Layer 3)</b>. No device opens the inner layers — each reads only its own label.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:1, blocks:full, unit:"Frame (rebuilt)", size:frame.length+" characters", tcpip:"Network Access",
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:1, blocks:full, unit:"Frame (rebuilt)", chars:frame.length, tcpip:"Physical",
      say:`Receiver, <b>Layer 1 · Physical</b>: the bits arrive and are rebuilt back into the frame. Now the journey reverses — UP the layers.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:2, blocks:full.slice(1,7), unit:"Packet", size:d3.length+" characters", tcpip:"Network Access", crc:true,
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:2, blocks:full.slice(1,7), unit:"Packet", chars:d3.length, tcpip:"Data Link", crc:true,
      say:`<b>Layer 2 · Data Link</b> removes its MAC header and trailer — and first <b>re-calculates the CRC</b>. It matches, so the frame is undamaged. Its label comes off.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:3, blocks:full.slice(2,7), unit:"Segment", size:d4.length+" characters", tcpip:"Internet",
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:3, blocks:full.slice(2,7), unit:"Segment", chars:d4.length, tcpip:"Network",
      say:`<b>Layer 3 · Network</b> checks the destination IP — “this machine” — accepts it, and removes the IP header. A <b>Segment</b> remains.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:4, blocks:full.slice(3,7), unit:"Data", size:d5.length+" characters", tcpip:"Transport",
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:4, blocks:full.slice(3,7), unit:"Data", chars:d5.length, tcpip:"Transport",
      say:`<b>Layer 4 · Transport</b> reads the destination port — which program gets this — and removes its header.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:5, blocks:full.slice(4,7), unit:"Data", size:d6.length+" characters", tcpip:"Application",
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:5, blocks:full.slice(4,7), unit:"Data", chars:d6.length, tcpip:"Application",
      say:`<b>Layer 5 · Session</b> removes the session label — the conversation is delivered in order, then closed.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:6, blocks:full.slice(5,7), unit:"Data", size:d7.length+" characters", tcpip:"Application",
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:6, blocks:full.slice(5,7), unit:"Data", chars:d7.length, tcpip:"Application",
      say:`<b>Layer 6 · Presentation</b> removes the format label — data decoded back from UTF-8 text.`},
-    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:7, blocks:[B("msgblk",msg)], unit:"Data — delivered", size:msg.length+" characters", tcpip:"Application", done:true,
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:7, blocks:[B("msgblk",msg)], unit:"Data — delivered", chars:msg.length, tcpip:"Application", done:true,
      say:`<b>Layer 7 · Application</b> removes the last header and hands the message to the program. <b>Every header added on the way down was removed on the way up — that is encapsulation and decapsulation.</b>`},
   ];
 }
@@ -692,9 +734,20 @@ function render(){
     if(st.side && st.layer){ const el=$(st.side+"-"+st.layer); if(el) el.classList.add(st===s?"active":"done"); }
   });
   if(s.side && s.layer){ const el=$(s.side+"-"+s.layer); if(el){ el.classList.remove("done"); el.classList.add("active"); } }
+  // TCP/IP pair stacks: the same journey with grouped rows — a group is active while any of
+  // its OSI steps is the current one, done once any of its steps has been visited
+  ["senderStack","receiverStack"].forEach(side=>{
+    Object.keys(TCPIP_GROUPS).forEach(g=>{
+      const el=$(side+"T-"+g); if(!el) return;
+      const visited=steps.slice(0,idx+1).some(st=>st.side===side && TCPIP_GROUPS[g].includes(st.layer));
+      const current=s.side===side && TCPIP_GROUPS[g].includes(s.layer);
+      el.classList.toggle("done", visited && !current);
+      el.classList.toggle("active", !!current);
+    });
+  });
   // pdu
   $("pdu").innerHTML=s.blocks.map(b=>`<div class="blk ${b.cls}">${b.txt.replace(/</g,"&lt;")}</div>`).join("");
-  $("unit").textContent=s.unit; $("size").textContent=s.size; $("tcpipNow").textContent=s.tcpip;
+  $("unit").textContent=s.unit; $("size").textContent=sizeText(s); $("tcpipNow").textContent=s.tcpip;
   $("narrate").innerHTML="<b>Say this:</b> "+s.say;
   // phase badge
   const ph=$("phase");
