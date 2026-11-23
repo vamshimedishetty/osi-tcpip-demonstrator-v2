@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 3 — OSI &amp; TCP/IP Layer Demonstrator (Visual) · BCS502 · Group 3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --l7:#7c3aed; --l6:#db2777; --l5:#ea580c; --l4:#0d9488; --l3:#2563eb; --l2:#16a34a; --l1:#475569;
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#ffffff;
+  }
+  body{ font-family: "Segoe UI", Arial, sans-serif; background:var(--bg); color:var(--ink); padding:18px 22px 28px; }
+  header{ display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+  h1{ font-size:24px; }
+  h1 span{ color:var(--l3); }
+  .sub{ color:var(--muted); font-size:13px; margin-top:3px; }
+  .phase{ font-weight:700; font-size:14px; padding:8px 14px; border-radius:999px; background:#e0e7ff; color:#3730a3; }
+  .phase.enc{ background:#dcfce7; color:#166534; }
+  .phase.travel{ background:#fef3c7; color:#92400e; }
+  .phase.dec{ background:#ffe4e6; color:#9f1239; }
+  .phase.done{ background:#16a34a; color:#fff; }
+
+  .controls{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:10px 12px; margin-bottom:14px; }
+  .controls label{ font-size:13px; color:var(--muted); font-weight:600; }
+  #msg{ flex:1; min-width:200px; font-size:16px; padding:9px 12px; border:2px solid var(--l3); border-radius:8px; }
+  button{ font-size:14px; font-weight:700; padding:9px 16px; border-radius:8px; border:1px solid var(--line);
+    background:#fff; cursor:pointer; }
+  button:hover{ background:#f1f5f9; }
+  button.primary{ background:var(--l3); color:#fff; border-color:var(--l3); }
+  button.primary:hover{ background:#1d4ed8; }
+  input[type=range]{ width:110px; }
+  .stepcount{ font-size:13px; color:var(--muted); font-weight:700; margin-left:auto; }
+
+  /* ---------- topology scene (Packet Tracer style, SVG so it scales) ---------- */
+  .topology{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px 12px; margin-bottom:14px; }
+  .topology h2, .panel h2{ font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  #scene{ width:100%; height:auto; display:block; }
+  #scene .node text{ text-anchor:middle; font-family:"Segoe UI", Arial, sans-serif; }
+  #scene .dname{ font-weight:700; font-size:17px; fill:var(--ink); }
+  #scene .daddr{ font-size:13px; fill:var(--muted); }
+  #scene .reads{ font-size:13px; font-weight:700; fill:var(--l3); opacity:0; transition:opacity .3s; }
+  #scene .node.lit .reads{ opacity:1; }
+  #scene .node.lit .devicon{ filter:drop-shadow(0 0 7px #f59e0b); }
+  #envelope{ filter:drop-shadow(0 3px 3px rgba(0,0,0,.30)); }
+  #scene .dnote{ font-size:13px; fill:var(--muted); font-style:italic; }
+  #scene .lanwire{ stroke:#94a3b8; stroke-width:2; }
+  #scene .lanwire.denied{ stroke:#dc2626; stroke-dasharray:5 4; }
+  #scene .devicon{ transition:opacity .3s; }
+  #scene .node.dim .devicon{ opacity:.35; }
+  #scene .notme{ font-size:20px; font-weight:800; fill:#dc2626; opacity:0; transition:opacity .3s; }
+  #scene .node.notme-on .notme{ opacity:1; }
+  #hopCaption{ margin-top:9px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px 12px;
+    font-size:13.5px; color:#92400e; }
+
+  /* ---------- two models · tappable layers · through-the-layers ---------- */
+  .models-grid{ display:grid; grid-template-columns:1.12fr .88fr; gap:20px; align-items:start; }
+  @media (max-width: 900px){ .models-grid{ grid-template-columns:1fr; } }
+  .models h3{ font-size:13px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .stackgrid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:stretch; }
+  .stackgrid .stackcol{ height:100%; }
+  @media (max-width: 640px){ .stackgrid{ grid-template-columns:1fr; } .stackgrid .stackcol{ height:auto; } }
+  .stackcol{ display:flex; flex-direction:column; gap:7px; }
+  .mrow{ display:flex; align-items:center; flex-wrap:wrap; gap:9px; text-align:left; width:100%; border:2px solid var(--c,#cbd5e1);
+    border-radius:10px; padding:8px 10px; background:#fff; cursor:pointer; font-family:inherit; flex:1; }
+  .mrow:hover{ background:#f8fafc; }
+  .mrow .mno{ font-weight:800; font-size:16px; width:18px; text-align:center; color:var(--c); }
+  .mrow .mnm{ font-weight:700; font-size:14px; }
+  .mrow .munit{ margin-left:auto; font-size:11px; color:var(--muted); white-space:nowrap; }
+  .mrow .mtag{ margin-left:auto; font-size:10.5px; font-weight:700; background:#f1f5f9; border-radius:999px;
+    padding:3px 8px; white-space:nowrap; }
+  .mrow.grow3{ flex:3; } .mrow.grow2{ flex:2; } .mrow.grow1{ flex:1; }
+  .mrow.sel{ background:#fffbeb; box-shadow:0 0 0 2px #f59e0b inset; }
+  .mapnote{ margin-top:11px; font-size:13px; color:var(--muted); line-height:1.55; }
+  .modelpick{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .modelpick label{ font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+  .modelpick select{ font-size:15px; font-weight:700; padding:8px 12px; border:2px solid var(--l3); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; font-family:inherit; }
+  .stackcol[hidden], .jstack[hidden]{ display:none !important; }
+  .jstack{ position:relative; }
+  .jstack::before{ content:""; position:absolute; left:28px; top:12px; bottom:46px; width:3px;
+    background:#e2e8f0; border-radius:2px; }
+  .jrow{ height:48px; display:flex; align-items:center; gap:9px; border:2px solid var(--line);
+    border-left:6px solid var(--c); border-radius:8px; padding:6px 10px 6px 58px; background:#fff;
+    opacity:.55; transition:all .3s; cursor:pointer; position:relative; }
+  .jrow .jno{ font-weight:800; font-size:15px; width:18px; text-align:center; color:var(--c); }
+  .jrow .jnm{ font-weight:700; font-size:14px; }
+  .jrow .jchip{ margin-left:auto; font-family:Consolas, monospace; font-size:11px; font-weight:700;
+    background:#f1f5f9; border-radius:6px; padding:3px 7px; white-space:nowrap; }
+  .jrow.active{ opacity:1; background:#fffbeb; box-shadow:0 3px 10px rgba(0,0,0,.10); }
+  .jwire{ height:40px; display:flex; align-items:center; justify-content:center; font-size:12.5px;
+    color:var(--muted); letter-spacing:.04em; }
+  .jwire.active{ color:#92400e; font-weight:800; }
+  .capsule{ position:absolute; left:14px; top:9px; width:30px; height:30px; border-radius:50%; z-index:2;
+    background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px;
+    box-shadow:0 2px 6px rgba(0,0,0,.30); transition:top .55s ease, background .3s; }
+  .capsule.wire{ background:#d97706; }
+  .capsule.delivered{ background:var(--l2); }
+  .jstatus{ margin-top:8px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px;
+    padding:8px 12px; font-size:13.5px; color:#92400e; }
+  .jpacket{ margin-top:14px; }
+  .jpacket .pdu{ justify-content:flex-start; }
+  .jpacket .blk{ font-size:11px; padding:6px 7px; }
+  .junit{ margin-top:8px; font-size:13px; color:var(--muted); }
+  .junit b{ color:var(--ink); }
+  #layerCard{ margin-top:18px; border:2px solid var(--line); border-radius:12px; padding:14px 16px; background:#fcfcfd; }
+  .cardhead{ display:flex; align-items:center; gap:11px; flex-wrap:wrap; margin-bottom:11px; }
+  #cardBadge{ width:34px; height:34px; border-radius:50%; color:#fff; font-weight:800; font-size:15px;
+    display:flex; align-items:center; justify-content:center; background:var(--l7); flex:0 0 auto; }
+  #cardTitle{ font-size:17px; margin:0; text-transform:none; letter-spacing:0; color:var(--ink); }
+  #cardState{ margin-left:auto; font-size:11.5px; font-weight:700; background:#e0e7ff; color:#3730a3;
+    border-radius:999px; padding:4px 10px; white-space:nowrap; }
+  #cardBody{ display:grid; grid-template-columns:1fr 1fr; gap:9px 24px; }
+  @media (max-width: 700px){ #cardBody{ grid-template-columns:1fr; } }
+  .crow{ display:flex; gap:10px; font-size:14px; line-height:1.45; }
+  .clab{ flex:0 0 116px; font-weight:700; color:var(--muted); font-size:12px; text-transform:uppercase;
+    letter-spacing:.04em; padding-top:2px; }
+  .cval{ font-family:inherit; }
+  .crow .cval{ word-break:break-word; }
+  .cardhint{ margin-top:11px; font-size:12px; color:var(--muted); }
+
+  /* ---------- main three columns ---------- */
+  .main{ display:grid; grid-template-columns: 300px 1fr 300px; gap:14px; align-items:start; }
+  @media (max-width: 980px){ .main{ grid-template-columns:1fr; } }
+  .panel{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .dir{ font-size:22px; text-align:center; color:var(--muted); margin-bottom:6px; }
+  .layer{ display:flex; align-items:center; gap:9px; border:2px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:7px;
+    opacity:.45; transition:all .35s; background:#fff; }
+  .layer .no{ font-weight:800; font-size:17px; width:20px; text-align:center; }
+  .layer .nm{ font-weight:700; font-size:14px; }
+  .layer .unit{ font-size:11px; color:var(--muted); }
+  .layer .tcpip{ margin-left:auto; font-size:10.5px; font-weight:700; background:#f1f5f9; border-radius:999px; padding:3px 8px; white-space:nowrap; }
+  .layer.active{ opacity:1; transform:scale(1.03); box-shadow:0 4px 14px rgba(0,0,0,.12); }
+  .layer.done{ opacity:.9; }
+  .layer.done::after{ content:"✓"; font-weight:800; color:var(--l2); }
+  .layer[data-l="7"]{ border-color:var(--l7);} .layer[data-l="6"]{ border-color:var(--l6);}
+  .layer[data-l="5"]{ border-color:var(--l5);} .layer[data-l="4"]{ border-color:var(--l4);}
+  .layer[data-l="3"]{ border-color:var(--l3);} .layer[data-l="2"]{ border-color:var(--l2);}
+  .layer[data-l="1"]{ border-color:var(--l1);}
+  .layer.active[data-l="7"]{ background:#f5f3ff;} .layer.active[data-l="6"]{ background:#fdf2f8;}
+  .layer.active[data-l="5"]{ background:#fff7ed;} .layer.active[data-l="4"]{ background:#f0fdfa;}
+  .layer.active[data-l="3"]{ background:#eff6ff;} .layer.active[data-l="2"]{ background:#f0fdf4;}
+  .layer.active[data-l="1"]{ background:#f1f5f9;}
+
+  /* ---------- PDU / envelope stack ---------- */
+  .pduwrap{ min-height:170px; display:flex; flex-direction:column; justify-content:center; }
+  .pdu{ display:flex; flex-wrap:wrap; gap:5px; align-items:stretch; justify-content:center; }
+  .blk{ border-radius:8px; color:#fff; font-family:Consolas, monospace; font-size:12.5px; padding:9px 10px;
+    display:flex; align-items:center; animation:pop .35s ease; word-break:break-all; }
+  @keyframes pop{ from{ transform:scale(.6); opacity:0;} to{ transform:scale(1); opacity:1;} }
+  .blk.msgblk{ background:#0f172a; font-weight:700; font-size:14px; }
+  .blk.b7{background:var(--l7);} .blk.b6{background:var(--l6);} .blk.b5{background:var(--l5);}
+  .blk.b4{background:var(--l4);} .blk.b3{background:var(--l3);} .blk.b2{background:var(--l2);}
+  .blk.trailer{ background:#15803d; border:2px dashed #bbf7d0; }
+  .blk.removing{ animation:pop .35s ease reverse; opacity:.25; }
+  .empty-note{ text-align:center; color:var(--muted); font-size:14px; }
+  .meta{ display:flex; gap:14px; justify-content:center; margin-top:12px; font-size:13px; color:var(--muted); flex-wrap:wrap; }
+  .meta b{ color:var(--ink); }
+  #bits{ font-family:Consolas, monospace; font-size:11.5px; word-break:break-all; background:#0f172a; color:#86efac;
+    border-radius:8px; padding:10px 12px; margin-top:12px; display:none; }
+  #crcbadge{ display:none; margin-top:12px; text-align:center; font-weight:800; font-size:16px; color:#166534;
+    background:#dcfce7; border-radius:8px; padding:9px; }
+  #success{ display:none; margin-top:12px; text-align:center; font-weight:800; font-size:17px; color:#fff;
+    background:#16a34a; border-radius:8px; padding:12px; }
+  .narrate{ margin-top:14px; background:#fffbeb; border:1px solid #fde68a; border-radius:12px; padding:13px 16px;
+    font-size:16.5px; line-height:1.45; }
+  .narrate b{ color:#92400e; }
+  .mapbar{ margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 16px;
+    font-size:13px; color:var(--muted); display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .mapbar b{ color:var(--ink); }
+  footer{ margin-top:12px; font-size:12px; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>OSI &amp; TCP/IP Layer Demonstrator — <span>Visual Edition</span></h1>
+    <div class="sub">BCS502 Computer Networks · Project 3 · Group 3 · Watch one message get wrapped, travel, and get unwrapped</div>
+  </div>
+  <div class="phase" id="phase">START — type a message</div>
+</header>
+
+<div class="controls">
+  <label for="msg">Your message:</label>
+  <input id="msg" type="text" value="Hello Network" maxlength="60">
+  <button class="primary" id="playBtn">▶ Play</button>
+  <button id="stepBtn">Step ⏭</button>
+  <button id="backBtn">⏮ Back</button>
+  <button id="resetBtn">↺ Reset</button>
+  <label for="speed">Speed</label>
+  <input type="range" id="speed" min="700" max="3000" value="1700" step="100">
+  <span class="stepcount" id="stepcount"></span>
+</div>
+
+<div class="topology">
+  <h2>Network topology — the road the message travels (Packet Tracer style)</h2>
+  <svg id="scene" viewBox="0 0 960 330" role="img" aria-label="Network topology: PC-A to Switch 1 to Router to Switch 2 to PC-B, with extra hosts PC-A2 and PC-A3 on Switch 1 and PC-B2 and PC-B3 on Switch 2">
+    <defs>
+      <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
+        <circle cx="1.6" cy="1.6" r="1.6" fill="#d3dee9"/>
+      </pattern>
+      <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#0369a1"/>
+      </marker>
+      <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+      </marker>
+      <g id="pcShape">
+        <rect x="-26" y="-22" width="52" height="34" rx="4" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+        <rect x="-21" y="-17" width="42" height="24" fill="#bae6fd"/>
+        <rect x="-5" y="12" width="10" height="6" fill="#334155"/>
+        <rect x="-15" y="18" width="30" height="4" rx="2" fill="#334155"/>
+      </g>
+    </defs>
+    <rect x="0" y="0" width="960" height="330" rx="8" fill="#eef3f8"/>
+    <rect x="0" y="0" width="960" height="330" rx="8" fill="url(#grid)"/>
+    <line x1="64" y1="72" x2="896" y2="72" stroke="#64748b" stroke-width="3"/>
+    <line class="lanwire left" x1="272" y1="88" x2="140" y2="200"/>
+    <line class="lanwire left" x1="320" y1="88" x2="452" y2="200"/>
+    <line class="lanwire right" x1="712" y1="88" x2="580" y2="200"/>
+    <line class="lanwire right" x1="760" y1="88" x2="892" y2="200"/>
+
+    <g class="node" id="n-pcA">
+      <g class="devicon">
+        <rect x="38" y="44" width="52" height="34" rx="4" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+        <rect x="43" y="49" width="42" height="24" fill="#bae6fd"/>
+        <rect x="59" y="78" width="10" height="6" fill="#334155"/>
+        <rect x="49" y="84" width="30" height="4" rx="2" fill="#334155"/>
+      </g>
+      <text class="dname" x="64" y="120">PC-A · Sender</text>
+      <text class="daddr" x="64" y="139">192.168.1.10</text>
+      <text class="reads" x="64" y="158">sends the frame</text>
+    </g>
+
+    <g class="node" id="n-sw1">
+      <g class="devicon">
+        <rect x="268" y="54" width="56" height="36" rx="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+        <line x1="281" y1="80" x2="309" y2="64" stroke="#0369a1" stroke-width="2.5" marker-end="url(#arrB)"/>
+        <line x1="281" y1="64" x2="309" y2="80" stroke="#0369a1" stroke-width="2.5" marker-end="url(#arrB)"/>
+      </g>
+      <text class="dname" x="296" y="120">Switch 1</text>
+      <text class="daddr" x="296" y="139">reads MAC (Layer 2)</text>
+      <text class="reads" x="296" y="158">✓ forwards by MAC</text>
+    </g>
+
+    <g class="node" id="n-rtr">
+      <g class="devicon">
+        <circle cx="520" cy="72" r="25" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+        <circle cx="520" cy="72" r="19" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+        <line x1="507" y1="63" x2="533" y2="63" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+        <line x1="533" y1="81" x2="507" y2="81" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
+      </g>
+      <text class="dname" x="520" y="120">Router</text>
+      <text class="daddr" x="520" y="139">reads IP (Layer 3)</text>
+      <text class="reads" x="520" y="158">✓ forwards by IP</text>
+    </g>
+
+    <g class="node" id="n-sw2">
+      <g class="devicon">
+        <rect x="708" y="54" width="56" height="36" rx="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+        <line x1="721" y1="80" x2="749" y2="64" stroke="#0369a1" stroke-width="2.5" marker-end="url(#arrB)"/>
+        <line x1="721" y1="64" x2="749" y2="80" stroke="#0369a1" stroke-width="2.5" marker-end="url(#arrB)"/>
+      </g>
+      <text class="dname" x="736" y="120">Switch 2</text>
+      <text class="daddr" x="736" y="139">reads MAC (Layer 2)</text>
+      <text class="reads" x="736" y="158">✓ forwards by MAC</text>
+    </g>
+
+    <g class="node" id="n-pcB">
+      <g class="devicon">
+        <rect x="870" y="44" width="52" height="34" rx="4" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+        <rect x="875" y="49" width="42" height="24" fill="#bae6fd"/>
+        <rect x="891" y="78" width="10" height="6" fill="#334155"/>
+        <rect x="881" y="84" width="30" height="4" rx="2" fill="#334155"/>
+      </g>
+      <text class="dname" x="896" y="120">PC-B · Receiver</text>
+      <text class="daddr" x="896" y="139">192.168.1.20</text>
+      <text class="reads" x="896" y="158">frame arrived!</text>
+    </g>
+
+    <g class="node extra" id="n-pcA2">
+      <g class="devicon" transform="translate(140,222)"><use href="#pcShape"/></g>
+      <text class="dname" x="140" y="272">PC-A2</text>
+      <text class="daddr" x="140" y="291">192.168.1.11</text>
+      <text class="dnote" x="140" y="310">also on this LAN</text>
+    </g>
+
+    <g class="node extra" id="n-pcA3">
+      <g class="devicon" transform="translate(452,222)"><use href="#pcShape"/></g>
+      <text class="dname" x="452" y="272">PC-A3</text>
+      <text class="daddr" x="452" y="291">192.168.1.12</text>
+      <text class="dnote" x="452" y="310">also on this LAN</text>
+    </g>
+
+    <g class="node extra" id="n-pcB2">
+      <g class="devicon" transform="translate(580,222)"><use href="#pcShape"/></g>
+      <text class="notme" x="614" y="212">✗</text>
+      <text class="dname" x="580" y="272">PC-B2</text>
+      <text class="daddr" x="580" y="291">192.168.1.21</text>
+      <text class="dnote" x="580" y="310">also on this LAN</text>
+    </g>
+
+    <g class="node extra" id="n-pcB3">
+      <g class="devicon" transform="translate(892,222)"><use href="#pcShape"/></g>
+      <text class="notme" x="926" y="212">✗</text>
+      <text class="dname" x="892" y="272">PC-B3</text>
+      <text class="daddr" x="892" y="291">192.168.1.22</text>
+      <text class="dnote" x="892" y="310">also on this LAN</text>
+    </g>
+
+    <g id="envelope" transform="translate(64,72)">
+      <rect x="-21" y="-15" width="42" height="30" rx="4" fill="#fbbf24" stroke="#b45309" stroke-width="2"/>
+      <path d="M-21,-15 L0,3 L21,-15" fill="none" stroke="#b45309" stroke-width="2"/>
+      <path d="M-21,15 L-4,0 M21,15 L4,0" fill="none" stroke="#b45309" stroke-width="1.5"/>
+    </g>
+  </svg>
+  <div id="hopCaption">The envelope is at PC-A, the sender — it travels once Layer 1 turns the frame into bits.</div>
+</div>
+
+<div class="topology models">
+  <h2>The two models — tap any layer</h2>
+  <div class="modelpick">
+    <label for="modelSelect">Choose the model:</label>
+    <select id="modelSelect">
+      <option value="osi" selected>OSI Model (7 layers)</option>
+      <option value="tcpip">TCP/IP Model (4 layers)</option>
+    </select>
+  </div>
+  <div class="models-grid">
+    <div>
+      <div id="stackOsi" class="stackcol">
+          <h3>OSI model · 7 layers</h3>
+          <button type="button" class="mrow" data-osi="7" style="--c:var(--l7)"><span class="mno">7</span><span class="mnm">Application</span><span class="munit">unit: Data</span><span class="mtag">TCP/IP: Application</span></button>
+          <button type="button" class="mrow" data-osi="6" style="--c:var(--l6)"><span class="mno">6</span><span class="mnm">Presentation</span><span class="munit">unit: Data</span><span class="mtag">TCP/IP: Application</span></button>
+          <button type="button" class="mrow" data-osi="5" style="--c:var(--l5)"><span class="mno">5</span><span class="mnm">Session</span><span class="munit">unit: Data</span><span class="mtag">TCP/IP: Application</span></button>
+          <button type="button" class="mrow" data-osi="4" style="--c:var(--l4)"><span class="mno">4</span><span class="mnm">Transport</span><span class="munit">unit: Segment</span><span class="mtag">TCP/IP: Transport</span></button>
+          <button type="button" class="mrow" data-osi="3" style="--c:var(--l3)"><span class="mno">3</span><span class="mnm">Network</span><span class="munit">unit: Packet</span><span class="mtag">TCP/IP: Internet</span></button>
+          <button type="button" class="mrow" data-osi="2" style="--c:var(--l2)"><span class="mno">2</span><span class="mnm">Data Link</span><span class="munit">unit: Frame</span><span class="mtag">TCP/IP: Network Access</span></button>
+          <button type="button" class="mrow" data-osi="1" style="--c:var(--l1)"><span class="mno">1</span><span class="mnm">Physical</span><span class="munit">unit: Bits</span><span class="mtag">TCP/IP: Network Access</span></button>
+        </div>
+      <div id="stackTcpip" class="stackcol" hidden>
+          <h3>TCP/IP model · 4 layers</h3>
+          <button type="button" class="mrow grow3" data-tcpip="app" style="--c:var(--l7)"><span class="mnm">Application</span><span class="mtag">OSI 7 · 6 · 5</span></button>
+          <button type="button" class="mrow grow1" data-tcpip="transport" style="--c:var(--l4)"><span class="mnm">Transport</span><span class="mtag">OSI 4</span></button>
+          <button type="button" class="mrow grow1" data-tcpip="internet" style="--c:var(--l3)"><span class="mnm">Internet</span><span class="mtag">OSI 3</span></button>
+          <button type="button" class="mrow grow2" data-tcpip="netaccess" style="--c:var(--l2)"><span class="mnm">Network Access</span><span class="mtag">OSI 2 · 1</span></button>
+      </div>
+      <p class="mapnote">Both models describe the <b>same journey</b> — the TCP/IP model just merges some floors into one: OSI <b>7 + 6 + 5 → Application</b> · OSI <b>4 → Transport</b> · OSI <b>3 → Internet</b> · OSI <b>2 + 1 → Network Access</b>. Every row carries the other model's name as a tag. Tap any layer in the stack to see what it does.</p>
+    </div>
+    <div>
+      <h3>Through the layers — follow the message</h3>
+      <div class="jstack" id="jstackOsi">
+        <div class="jrow" data-osi="7" style="--c:var(--l7)"><span class="jno">7</span><span class="jnm">Application</span><span class="jchip">AH</span></div>
+        <div class="jrow" data-osi="6" style="--c:var(--l6)"><span class="jno">6</span><span class="jnm">Presentation</span><span class="jchip">PH</span></div>
+        <div class="jrow" data-osi="5" style="--c:var(--l5)"><span class="jno">5</span><span class="jnm">Session</span><span class="jchip">SH</span></div>
+        <div class="jrow" data-osi="4" style="--c:var(--l4)"><span class="jno">4</span><span class="jnm">Transport</span><span class="jchip">TH</span></div>
+        <div class="jrow" data-osi="3" style="--c:var(--l3)"><span class="jno">3</span><span class="jnm">Network</span><span class="jchip">NH</span></div>
+        <div class="jrow" data-osi="2" style="--c:var(--l2)"><span class="jno">2</span><span class="jnm">Data Link</span><span class="jchip">DH + DT</span></div>
+        <div class="jrow" data-osi="1" style="--c:var(--l1)"><span class="jno">1</span><span class="jnm">Physical</span><span class="jchip">bits</span></div>
+        <div class="jwire" id="jwire">〰 the wire — bits travel from PC-A to PC-B 〰</div>
+        <div class="capsule" id="capsuleOsi" title="the message">✉</div>
+      </div>
+      <div class="jstack" id="jstackTcpip" hidden>
+        <div class="jrow" data-tcpip="app" style="--c:var(--l7)"><span class="jno">A</span><span class="jnm">Application</span><span class="jchip">AH + PH + SH</span></div>
+        <div class="jrow" data-tcpip="transport" style="--c:var(--l4)"><span class="jno">T</span><span class="jnm">Transport</span><span class="jchip">TH</span></div>
+        <div class="jrow" data-tcpip="internet" style="--c:var(--l3)"><span class="jno">I</span><span class="jnm">Internet</span><span class="jchip">NH</span></div>
+        <div class="jrow" data-tcpip="netaccess" style="--c:var(--l2)"><span class="jno">N</span><span class="jnm">Network Access</span><span class="jchip">DH + DT · bits</span></div>
+        <div class="jwire" id="jwireT">〰 the wire — bits travel from PC-A to PC-B 〰</div>
+        <div class="capsule" id="capsuleTcpip" title="the message">✉</div>
+      </div>
+      <div class="jpacket">
+        <h3>The packet at this layer</h3>
+        <div class="pdu" id="jpacket"></div>
+        <div class="junit" id="junit">Now it is a: —</div>
+      </div>
+      <div class="jstatus" id="jstatus">Ready at the sender — the message starts at Layer 7 · Application and travels DOWN through the layers.</div>
+    </div>
+  </div>
+  <div id="layerCard">
+    <div class="cardhead">
+      <span id="cardBadge">7</span>
+      <h3 id="cardTitle">Layer 7 · Application</h3>
+      <span id="cardState">Following the demo</span>
+    </div>
+    <div id="cardBody"></div>
+    <div class="cardhint">Tap any layer in the stack above to inspect it here. Press Step, Play or Back and this card goes back to following the demo.</div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- SENDER -->
+  <div class="panel">
+    <h2>Sender — Encapsulation</h2>
+    <div class="dir">message goes DOWN ↓</div>
+    <div id="senderStack"></div>
+  </div>
+
+  <!-- CENTRE : THE PDU -->
+  <div class="panel">
+    <h2>The message itself — watch it grow, travel, then shrink</h2>
+    <div class="pduwrap"><div class="pdu" id="pdu"><div class="empty-note">Press <b>Step</b> or <b>Play</b> — the message is born at Layer 7, Application.</div></div></div>
+    <div class="meta">
+      <span>Data unit: <b id="unit">—</b></span>
+      <span>Size: <b id="size">—</b></span>
+      <span>TCP/IP layer: <b id="tcpipNow">—</b></span>
+    </div>
+    <div id="bits"></div>
+    <div id="crcbadge">CRC CHECK: MATCH ✓ — frame arrived without damage</div>
+    <div id="success">✅ SUCCESS — the receiver got back the exact original message</div>
+    <div class="narrate" id="narrate"><b>Say this:</b> “Our project shows what happens inside a network when one message is sent. It does not travel naked — every layer wraps it first.”</div>
+  </div>
+
+  <!-- RECEIVER -->
+  <div class="panel">
+    <h2>Receiver — Decapsulation</h2>
+    <div class="dir">message comes UP ↑</div>
+    <div id="receiverStack"></div>
+  </div>
+</div>
+
+<div class="mapbar">
+  <b>OSI → TCP/IP mapping (both models, one journey):</b>
+  <span>Application + Presentation + Session → <b>Application</b></span>
+  <span>Transport → <b>Transport</b></span>
+  <span>Network → <b>Internet</b></span>
+  <span>Data Link + Physical → <b>Network Access</b></span>
+</div>
+
+<footer>Software simulation, as given in the assignment sheet. Headers are illustrative text labels — in a real network the same information (ports, IPs, MACs, CRC) travels as binary fields. Values match the tested Python version exactly. Keyboard: → / Space = next step.</footer>
+
+<script>
+// ---- fixed values: IDENTICAL to osi_tcpip_demonstrator.py ----
+const SRC_PORT=54321, DST_PORT=80, SRC_IP="192.168.1.10", DST_IP="192.168.1.20";
+const SRC_MAC="AA:BB:CC:11:22:33", DST_MAC="DD:EE:FF:44:55:66", SESSION_ID=101;
+
+// ---- CRC32 (same IEEE algorithm as Python binascii.crc32) ----
+const CRC_TABLE=(()=>{ const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; })();
+function crc32hex(str){
+  const bytes=new TextEncoder().encode(str); let crc=0xFFFFFFFF;
+  for(const b of bytes) crc=CRC_TABLE[(crc^b)&0xFF]^(crc>>>8);
+  return ((crc^0xFFFFFFFF)>>>0).toString(16).toUpperCase().padStart(8,"0");
+}
+
+// ---- layer definitions ----
+const LAYERS=[
+  {no:7, name:"Application",  tcpip:"Application",    unit:"Data",    cls:"b7"},
+  {no:6, name:"Presentation", tcpip:"Application",    unit:"Data",    cls:"b6"},
+  {no:5, name:"Session",      tcpip:"Application",    unit:"Data",    cls:"b5"},
+  {no:4, name:"Transport (TCP)", tcpip:"Transport",   unit:"Segment", cls:"b4"},
+  {no:3, name:"Network (IP)", tcpip:"Internet",       unit:"Packet",  cls:"b3"},
+  {no:2, name:"Data Link",    tcpip:"Network Access", unit:"Frame",   cls:"b2"},
+  {no:1, name:"Physical",     tcpip:"Network Access", unit:"Bits",    cls:"b1"},
+];
+function buildStack(elId){
+  const el=document.getElementById(elId);
+  el.innerHTML=LAYERS.map(l=>`<div class="layer" data-l="${l.no}" id="${elId}-${l.no}">
+    <div class="no">${l.no}</div><div><div class="nm">${l.name}</div><div class="unit">unit: ${l.unit}</div></div>
+    <div class="tcpip">TCP/IP: ${l.tcpip}</div></div>`).join("");
+}
+buildStack("senderStack"); buildStack("receiverStack");
+
+// ---- tappable layers: detail card + "through the layers" journey view ----
+const LAYER_COLORS={7:"#7c3aed",6:"#db2777",5:"#ea580c",4:"#0d9488",3:"#2563eb",2:"#16a34a",1:"#475569"};
+const LAYER_INFO={
+  7:{badge:"7", title:"Layer 7 · Application (OSI)", rows:[
+    ["What it does","Gives network services to the programs you use — browser, email app. This is where the message is created."],
+    ["Header it adds","[AH: HTTP] — AH = Application Header · HTTP = HyperText Transfer Protocol"],
+    ["Data unit","Data"],
+    ["Real-world size","No fixed size — an HTTP header is usually a few hundred bytes"],
+    ["Protocols","HTTP, HTTPS, DNS, SMTP, FTP"],
+    ["Remember it as","Your browser asking for a web page"]]},
+  6:{badge:"6", title:"Layer 6 · Presentation (OSI)", rows:[
+    ["What it does","Puts the data into an agreed format (text encoding), and handles encryption and compression, so the other side can read it."],
+    ["Header it adds","[PH: UTF-8] — PH = Presentation Header"],
+    ["Data unit","Data"],
+    ["Real-world size","No separate header in real networks"],
+    ["Examples","UTF-8 text, JPEG, MP3, SSL/TLS encryption"],
+    ["Remember it as","Two people agreeing to speak English before they start talking"]]},
+  5:{badge:"5", title:"Layer 5 · Session (OSI)", rows:[
+    ["What it does","Opens, manages and closes the conversation (the session) between the two computers, and keeps different conversations from mixing up."],
+    ["Header it adds","[SH: Session=101] — SH = Session Header"],
+    ["Data unit","Data"],
+    ["Real-world size","No separate header in real networks"],
+    ["Remember it as","A chairperson starting and ending a meeting — or your login session on a website"]]},
+  4:{badge:"4", title:"Layer 4 · Transport (OSI)", rows:[
+    ["What it does","Delivers the data end-to-end between the right PROGRAMS on the two computers, using port numbers. TCP (Transmission Control Protocol) is reliable: sequence numbers, acknowledgements, and resending lost pieces. UDP (User Datagram Protocol) is fast, with no guarantee."],
+    ["Header it adds","[TH: SrcPort=54321 DstPort=80 Seq=1] — TH = Transport Header"],
+    ["Data unit","Segment (TCP) / Datagram (UDP)"],
+    ["Real-world size","TCP header 20 bytes · UDP header 8 bytes"],
+    ["Remember it as","The flat number after the building address — it gets the letter to the right person inside"]]},
+  3:{badge:"3", title:"Layer 3 · Network (OSI)", rows:[
+    ["What it does","Adds IP (Internet Protocol) addresses and chooses the path across different networks — this is routing. It is the only layer that can carry data from one network to another."],
+    ["Header it adds","[NH: SrcIP=192.168.1.10 DstIP=192.168.1.20] — NH = Network Header"],
+    ["Data unit","Packet"],
+    ["Real-world size","IPv4 header 20 bytes (IPv6: 40 bytes)"],
+    ["Works on","The ROUTER"],
+    ["Remember it as","The full city + building address on a letter"]]},
+  2:{badge:"2", title:"Layer 2 · Data Link (OSI)", rows:[
+    ["What it does","Delivers the frame on the SAME local network, using MAC (Media Access Control — hardware) addresses, and adds the CRC (Cyclic Redundancy Check) trailer so the receiver can detect damage."],
+    ["Header it adds","[DH: SrcMAC=AA:BB:CC:11:22:33 DstMAC=DD:EE:FF:44:55:66] — DH = Data Link Header · and trailer [DT: CRC=7E9EAA81] — DT = Data Link Trailer · CRC = Cyclic Redundancy Check"],
+    ["Data unit","Frame"],
+    ["Real-world size","Header 14 bytes · trailer (CRC — Cyclic Redundancy Check) 4 bytes"],
+    ["Works on","The SWITCH"],
+    ["Remember it as","The postman who knows every house on his own street"]]},
+  1:{badge:"1", title:"Layer 1 · Physical (OSI)", rows:[
+    ["What it does","Turns the whole frame into bits — 0s and 1s — and sends them as signals on the wire (or as light or radio waves). It adds NO header."],
+    ["Header it adds","None — this layer adds nothing"],
+    ["Data unit","Bits"],
+    ["Real-world size","No header at all. In our run, 210 characters become 1,680 bits"],
+    ["Works on","Cables, hub"],
+    ["Remember it as","The paper the letter is written on, and the truck that physically carries it"]]},
+};
+const TCPIP_INFO={
+  app:{badge:"A", color:"#7c3aed", title:"TCP/IP · Application — OSI Layers 7 + 6 + 5 combined", rows:[
+    ["What it does","Three OSI jobs done by one TCP/IP layer: (1) Application — network services for your programs, where the message is created. (2) Presentation — agreed format, encryption and compression. (3) Session — opens, manages and closes the conversation."],
+    ["Headers it adds","[AH: HTTP] · [PH: UTF-8] · [SH: Session=101] — AH = Application Header · PH = Presentation Header · SH = Session Header · HTTP = HyperText Transfer Protocol"],
+    ["Data unit","Data"],
+    ["Real-world size","No fixed size"],
+    ["Remember it as","One combined top floor doing three jobs"]]},
+  transport:{badge:"T", color:"#0d9488", title:"TCP/IP · Transport — the same as OSI Layer 4", rows:null},
+  internet:{badge:"I", color:"#2563eb", title:"TCP/IP · Internet — the same as OSI Layer 3", rows:null},
+  netaccess:{badge:"N", color:"#16a34a", title:"TCP/IP · Network Access — OSI Layers 2 + 1 combined", rows:[
+    ["What it does","Two OSI jobs done by one TCP/IP layer: (1) Data Link — MAC (Media Access Control) addresses and the CRC (Cyclic Redundancy Check) trailer, delivering on the same local network (the switch's job). (2) Physical — turning the frame into bits on the wire, adding no header."],
+    ["Headers it adds","[DH: SrcMAC=AA:BB:CC:11:22:33 DstMAC=DD:EE:FF:44:55:66] — DH = Data Link Header · and trailer [DT: CRC=7E9EAA81] — DT = Data Link Trailer"],
+    ["Data unit","Frame, then Bits"],
+    ["Real-world size","Header 14 bytes · trailer (CRC — Cyclic Redundancy Check) 4 bytes · Physical adds nothing"],
+    ["Remember it as","The postman on his street, plus the paper and the truck"]]},
+};
+TCPIP_INFO.transport.rows=LAYER_INFO[4].rows;
+TCPIP_INFO.internet.rows=LAYER_INFO[3].rows;
+
+let pinned=null; // null = card follows the demo · {osi:n} / {tcpip:key} = the layer the user tapped
+let modelMode="osi"; // which model the models section is showing: "osi" or "tcpip"
+function layerName(n){ const l=LAYERS.find(x=>x.no===n); return l? l.name : ""; }
+function currentDemoLayer(){
+  const s=steps[idx<0?0:idx];
+  if(s.travel) return 1;
+  if(s.layer) return s.layer;
+  return 7;
+}
+function showCard(key){
+  let info;
+  if(key.osi){ const inf=LAYER_INFO[key.osi]; info={badge:inf.badge, color:LAYER_COLORS[key.osi], title:inf.title, rows:inf.rows}; }
+  else { info=TCPIP_INFO[key.tcpip]; }
+  $("cardBadge").textContent=info.badge;
+  $("cardBadge").style.background=info.color;
+  $("cardTitle").textContent=info.title;
+  $("cardState").textContent = pinned ? "You tapped this layer" : "Following the demo";
+  $("cardBody").innerHTML=info.rows.map(r=>`<div class="crow"><div class="clab">${r[0]}</div><div class="cval">${r[1]}</div></div>`).join("");
+  document.querySelectorAll(".mrow").forEach(el=>el.classList.remove("sel"));
+  const sel = key.osi ? document.querySelector(`.mrow[data-osi="${key.osi}"]`) : document.querySelector(`.mrow[data-tcpip="${key.tcpip}"]`);
+  if(sel) sel.classList.add("sel");
+}
+const TCPIP_KEY_BY_NAME={"Application":"app","Transport":"transport","Internet":"internet","Network Access":"netaccess"};
+function currentDemoKey(){
+  if(modelMode==="tcpip"){
+    const s=steps[idx<0?0:idx];
+    if(s.travel) return {tcpip:"netaccess"};
+    if(s.done) return {tcpip:"app"};
+    return {tcpip: TCPIP_KEY_BY_NAME[s.tcpip] || "app"};
+  }
+  return {osi:currentDemoLayer()};
+}
+function updateCard(){ showCard(pinned || currentDemoKey()); }
+
+// ---- through-the-layers journey view: one rail per model, both synced to the step engine ----
+const JROW_H=48;
+const TCPIP_RAIL=["Application","Transport","Internet","Network Access"];
+function syncJourney(){
+  const s=steps[idx<0?0:idx];
+  // --- OSI rail: 7 stops, driven by the step's OSI layer ---
+  let layer=null, state, osiStatus;
+  if(s.travel){ state="wire";
+    osiStatus="On the wire → the frame is now only bits, travelling from PC-A to PC-B. Each device reads only its own layer's label."; }
+  else if(s.done){ layer=7; state="delivered";
+    osiStatus="Delivered ✓ — the message is back at Layer 7 · Application, exactly as it was typed."; }
+  else if(s.side==="receiverStack" && s.layer){ layer=s.layer; state="unwrap";
+    osiStatus=`Coming UP ↑ — the message is at Layer ${layer} · ${layerName(layer)}: its header is being removed.`; }
+  else if(s.layer){ layer=s.layer; state="wrap";
+    osiStatus=`Going DOWN ↓ — the message is at Layer ${layer} · ${layerName(layer)}: its header is being added.`; }
+  else { layer=7; state="start";
+    osiStatus="Ready at the sender — the message starts at Layer 7 · Application and travels DOWN through the layers."; }
+  const capO=$("capsuleOsi");
+  capO.style.top = state==="wire" ? (7*JROW_H+5)+"px" : ((7-layer)*JROW_H+9)+"px";
+  capO.classList.toggle("wire", state==="wire");
+  capO.classList.toggle("delivered", state==="delivered");
+  $("jwire").classList.toggle("active", state==="wire");
+  // --- TCP/IP rail: 4 stops, driven by the step's tcpip field ---
+  let tIdx=0, tState, tcpStatus;
+  if(s.travel){ tState="wire";
+    tcpStatus="On the wire → the frame is now only bits, travelling from PC-A to PC-B. Switches read the MAC label, the Router reads the IP label."; }
+  else if(s.done){ tIdx=0; tState="delivered";
+    tcpStatus="Delivered ✓ — the message is back at TCP/IP · Application, exactly as it was typed."; }
+  else if(s.tcpip && s.tcpip!=="—"){ tIdx=TCPIP_RAIL.indexOf(s.tcpip); tState = s.side==="receiverStack" ? "unwrap" : "wrap";
+    tcpStatus = tState==="unwrap"
+      ? `Coming UP ↑ — the message is at TCP/IP · ${s.tcpip}: its header is being removed.`
+      : `Going DOWN ↓ — the message is at TCP/IP · ${s.tcpip}: its header is being added.`; }
+  else { tIdx=0; tState="start";
+    tcpStatus="Ready at the sender — the message starts at TCP/IP · Application and travels DOWN through the layers."; }
+  const capT=$("capsuleTcpip");
+  capT.style.top = tState==="wire" ? (4*JROW_H+5)+"px" : (tIdx*JROW_H+9)+"px";
+  capT.classList.toggle("wire", tState==="wire");
+  capT.classList.toggle("delivered", tState==="delivered");
+  $("jwireT").classList.toggle("active", tState==="wire");
+  // --- active-row highlighting on both rails (the hidden one simply stays correct) ---
+  let ti=0;
+  document.querySelectorAll(".jrow").forEach(el=>{
+    const o=el.getAttribute("data-osi");
+    if(o!==null){ el.classList.toggle("active", state!=="wire" && +o===layer); }
+    else { el.classList.toggle("active", tState!=="wire" && ti===tIdx); ti++; }
+  });
+  $("jstatus").textContent = modelMode==="tcpip" ? tcpStatus : osiStatus;
+}
+
+// ---- journey packet view: the very same header blocks as the main PDU panel, so the packet is visible at every layer ----
+function syncPacket(){
+  const s=steps[idx<0?0:idx];
+  $("jpacket").innerHTML=s.blocks.map(b=>`<div class="blk ${b.cls}">${b.txt.replace(/</g,"&lt;")}</div>`).join("");
+  $("junit").innerHTML="Now it is a: <b>"+s.unit+"</b>";
+}
+
+// ---- model dropdown: show only the chosen model's stack + journey rail ----
+document.getElementById("modelSelect").addEventListener("change",e=>{
+  modelMode=e.target.value;
+  document.getElementById("stackOsi").hidden = modelMode!=="osi";
+  document.getElementById("stackTcpip").hidden = modelMode!=="tcpip";
+  document.getElementById("jstackOsi").hidden = modelMode!=="osi";
+  document.getElementById("jstackTcpip").hidden = modelMode!=="tcpip";
+  syncJourney();
+  updateCard();
+});
+
+// ---- tap wiring: rows inside the models section fill the detail card ----
+document.querySelectorAll(".mrow").forEach(el=>el.addEventListener("click",()=>{
+  const o=el.getAttribute("data-osi");
+  pinned = o ? {osi:+o} : {tcpip:el.getAttribute("data-tcpip")};
+  updateCard();
+}));
+document.querySelectorAll(".jrow").forEach(el=>el.addEventListener("click",()=>{
+  const o=el.getAttribute("data-osi");
+  pinned = o ? {osi:+o} : {tcpip:el.getAttribute("data-tcpip")};
+  updateCard();
+}));
+
+// ---- build the step list for a given message ----
+function buildSteps(msg){
+  const AH=`[AH: HTTP]`, PH=`[PH: UTF-8]`, SH=`[SH: Session=${SESSION_ID}]`,
+        TH=`[TH: SrcPort=${SRC_PORT} DstPort=${DST_PORT} Seq=1]`,
+        NH=`[NH: SrcIP=${SRC_IP} DstIP=${DST_IP}]`,
+        DH=`[DH: SrcMAC=${SRC_MAC} DstMAC=${DST_MAC}]`;
+  const d7=`${AH} ${msg}`, d6=`${PH} ${d7}`, d5=`${SH} ${d6}`, d4=`${TH} ${d5}`, d3=`${NH} ${d4}`;
+  const crc=crc32hex(d3), DT=`[DT: CRC=${crc}]`, frame=`${DH} ${d3} ${DT}`;
+  const bits=[...frame].map(ch=>ch.charCodeAt(0).toString(2).padStart(8,"0")).join("");
+  const B=(cls,txt)=>({cls,txt});
+  const full=[B("b2",DH),B("b3",NH),B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg),B("trailer",DT)];
+  return [
+    {phase:"START", side:null, layer:null, blocks:[B("msgblk",msg)], unit:"— (just typed)", size:msg.length+" characters", tcpip:"—",
+     say:`“The user types the message: <b>${msg}</b>. It is born at the top — Layer 7, Application.”`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:7, blocks:[B("b7",AH),B("msgblk",msg)], unit:"Data", size:d7.length+" characters", tcpip:"Application",
+     say:`<b>Layer 7 · Application</b> adds <b>[AH: HTTP]</b> — which app protocol is used. First envelope on.`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:6, blocks:[B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Data", size:d6.length+" characters", tcpip:"Application",
+     say:`<b>Layer 6 · Presentation</b> adds <b>[PH: UTF-8]</b> — the data format, so the other side can read it. (In real life: also encryption/compression.)`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:5, blocks:[B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Data", size:d5.length+" characters", tcpip:"Application",
+     say:`<b>Layer 5 · Session</b> adds <b>[SH: Session=${SESSION_ID}]</b> — it opens the conversation and gives it a number, so dialogues don't mix up.`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:4, blocks:[B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Segment", size:d4.length+" characters", tcpip:"Transport",
+     say:`<b>Layer 4 · Transport</b> adds <b>port numbers</b> — which program on each computer. Port 80 = web. From here the data is called a <b>Segment</b>.`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:3, blocks:[B("b3",NH),B("b4",TH),B("b5",SH),B("b6",PH),B("b7",AH),B("msgblk",msg)], unit:"Packet", size:d3.length+" characters", tcpip:"Internet",
+     say:`<b>Layer 3 · Network</b> adds <b>IP addresses</b> — which computer, anywhere in the network. Now it is a <b>Packet</b>. Routers will read only this label.`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:2, blocks:full, unit:"Frame", size:frame.length+" characters", tcpip:"Network Access",
+     say:`<b>Layer 2 · Data Link</b> adds <b>MAC addresses</b> for the next direct hop, plus the <b>CRC trailer at the END</b> — a number calculated from the whole frame, to catch damage. Now it is a <b>Frame</b>. That is encapsulation complete: 6 labels wrapped around one message.`},
+    {phase:"ENCAPSULATION ↓", side:"senderStack", layer:1, blocks:full, unit:"Bits", size:bits.length+" bits", tcpip:"Network Access", bits:bits,
+     say:`<b>Layer 1 · Physical</b> adds nothing — it converts the whole frame into <b>bits, ${bits.length} of them</b>. This bit stream is the only thing that really travels on the wire.`},
+    {phase:"TRAVEL →", side:null, layer:null, blocks:full, unit:"Bits (on the wire)", size:bits.length+" bits", tcpip:"Network Access", travel:true,
+     say:`The bits travel: <b>Switches forward by MAC (Layer 2)</b>, the <b>Router forwards by IP (Layer 3)</b>. No device opens the inner layers — each reads only its own label.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:1, blocks:full, unit:"Frame (rebuilt)", size:frame.length+" characters", tcpip:"Network Access",
+     say:`Receiver, <b>Layer 1 · Physical</b>: the bits arrive and are rebuilt back into the frame. Now the journey reverses — UP the layers.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:2, blocks:full.slice(1,7), unit:"Packet", size:d3.length+" characters", tcpip:"Network Access", crc:true,
+     say:`<b>Layer 2 · Data Link</b> removes its MAC header and trailer — and first <b>re-calculates the CRC</b>. It matches, so the frame is undamaged. Its label comes off.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:3, blocks:full.slice(2,7), unit:"Segment", size:d4.length+" characters", tcpip:"Internet",
+     say:`<b>Layer 3 · Network</b> checks the destination IP — “this machine” — accepts it, and removes the IP header. A <b>Segment</b> remains.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:4, blocks:full.slice(3,7), unit:"Data", size:d5.length+" characters", tcpip:"Transport",
+     say:`<b>Layer 4 · Transport</b> reads the destination port — which program gets this — and removes its header.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:5, blocks:full.slice(4,7), unit:"Data", size:d6.length+" characters", tcpip:"Application",
+     say:`<b>Layer 5 · Session</b> removes the session label — the conversation is delivered in order, then closed.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:6, blocks:full.slice(5,7), unit:"Data", size:d7.length+" characters", tcpip:"Application",
+     say:`<b>Layer 6 · Presentation</b> removes the format label — data decoded back from UTF-8 text.`},
+    {phase:"DECAPSULATION ↑", side:"receiverStack", layer:7, blocks:[B("msgblk",msg)], unit:"Data — delivered", size:msg.length+" characters", tcpip:"Application", done:true,
+     say:`<b>Layer 7 · Application</b> removes the last header and hands the message to the program. <b>Every header added on the way down was removed on the way up — that is encapsulation and decapsulation.</b>`},
+  ];
+}
+
+// ---- engine ----
+let steps=[], idx=-1, timer=null;
+const $=id=>document.getElementById(id);
+
+// ---- topology scene: envelope travel animation (Packet Tracer simulation style) ----
+const DEV_X={ pcA:64, sw1:296, rtr:520, sw2:736, pcB:896 }, WIRE_Y=72;
+let animToken=0, travelBusy=false;
+function setEnv(x){ $("envelope").setAttribute("transform",`translate(${x},${WIRE_Y})`); }
+function setCaption(t){ $("hopCaption").textContent=t; }
+function flashDenied(){
+  const token=animToken;
+  ["n-pcB2","n-pcB3"].forEach(id=>{ const n=$(id); if(n) n.classList.add("dim","notme-on"); });
+  document.querySelectorAll(".lanwire.right").forEach(w=>w.classList.add("denied"));
+  setTimeout(()=>{ if(token!==animToken) return; // a newer render already cleared the scene
+    ["n-pcB2","n-pcB3"].forEach(id=>{ const n=$(id); if(n) n.classList.remove("dim","notme-on"); });
+    document.querySelectorAll(".lanwire.right").forEach(w=>w.classList.remove("denied"));
+  }, 1200);
+}
+function startTravel(){
+  const stops=[
+    {x:DEV_X.pcA, id:"n-pcA", cap:"The frame leaves PC-A as bits on the wire"},
+    {x:DEV_X.sw1, id:"n-sw1", cap:"Switch 1 reads the MAC address (Layer 2) and forwards the frame"},
+    {x:DEV_X.rtr, id:"n-rtr", cap:"The Router reads the IP address (Layer 3) and forwards the packet towards PC-B's network"},
+    {x:DEV_X.sw2, id:"n-sw2", cap:"Switch 2 reads the MAC address (Layer 2) and delivers it only to PC-B's port — PC-B2 and PC-B3 don't receive it"},
+    {x:DEV_X.pcB, id:"n-pcB", cap:"PC-B receives the frame — now it gets unwrapped"},
+  ];
+  // total travel time scales with the Speed slider (~2.5s at the default 1700)
+  const speed=parseInt($("speed").value,10)||1700;
+  const dur=speed*1.5, legT=dur*0.19, pauseT=dur*0.08;
+  const segs=[]; let cursor=0;
+  for(let i=0;i<4;i++){ segs.push({from:stops[i].x, to:stops[i+1].x, start:cursor, end:cursor+legT}); cursor+=legT+pauseT; }
+  const total=segs[segs.length-1].end;
+  const token=animToken; travelBusy=true;
+  setEnv(stops[0].x); $(stops[0].id).classList.add("lit"); setCaption(stops[0].cap);
+  const fired=new Set(); let t0=null;
+  function frame(ts){
+    if(token!==animToken) return; // a newer render (Step/Back/Reset) cancelled this run
+    if(t0===null) t0=ts;
+    const t=ts-t0;
+    let x=stops[0].x;
+    for(const seg of segs){
+      if(t<seg.start){ x=seg.from; break; }
+      if(t<=seg.end){ const p=(t-seg.start)/(seg.end-seg.start), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2; x=seg.from+(seg.to-seg.from)*e; }
+      else x=seg.to;
+    }
+    setEnv(x);
+    segs.forEach((seg,i)=>{ if(t>=seg.end && !fired.has(i)){ fired.add(i); const st=stops[i+1]; $(st.id).classList.add("lit"); setCaption(st.cap); if(st.id==="n-sw2") flashDenied(); } });
+    if(t<total) requestAnimationFrame(frame);
+    else { setEnv(stops[4].x); travelBusy=false; }
+  }
+  requestAnimationFrame(frame);
+}
+
+function render(){
+  const s=steps[idx<0?0:idx];
+  // stacks
+  document.querySelectorAll(".layer").forEach(el=>el.classList.remove("active","done"));
+  steps.slice(0,idx+1).forEach(st=>{
+    if(st.side && st.layer){ const el=$(st.side+"-"+st.layer); if(el) el.classList.add(st===s?"active":"done"); }
+  });
+  if(s.side && s.layer){ const el=$(s.side+"-"+s.layer); if(el){ el.classList.remove("done"); el.classList.add("active"); } }
+  // pdu
+  $("pdu").innerHTML=s.blocks.map(b=>`<div class="blk ${b.cls}">${b.txt.replace(/</g,"&lt;")}</div>`).join("");
+  $("unit").textContent=s.unit; $("size").textContent=s.size; $("tcpipNow").textContent=s.tcpip;
+  $("narrate").innerHTML="<b>Say this:</b> "+s.say;
+  // phase badge
+  const ph=$("phase");
+  ph.textContent = s.done ? "DONE ✓ — message delivered" : (s.phase==="START" ? "START — message typed at sender" : s.phase+" · "+(s.side==="receiverStack"?"Receiver":"Sender / wire"));
+  ph.className="phase "+(s.done?"done":s.phase.startsWith("ENC")?"enc":s.phase.startsWith("TRAVEL")?"travel":s.phase.startsWith("DEC")?"dec":"");
+  // bits / crc / success
+  $("bits").style.display=s.bits? "block":"none";
+  if(s.bits) $("bits").textContent=s.bits.slice(0,220)+"  …  ("+s.bits.length+" bits total)";
+  $("crcbadge").style.display=s.crc? "block":"none";
+  $("success").style.display=s.done? "block":"none";
+  // topology scene: cancel any running travel, clear highlights, then set the scene for this step
+  animToken++; travelBusy=false;
+  document.querySelectorAll(".node").forEach(n=>n.classList.remove("lit","dim","notme-on"));
+  document.querySelectorAll(".lanwire").forEach(w=>w.classList.remove("denied"));
+  if(s.travel){ startTravel(); }
+  else if(s.side==="receiverStack" || s.done){ setEnv(DEV_X.pcB); setCaption("PC-B receives the frame — now it gets unwrapped"); }
+  else { setEnv(DEV_X.pcA); setCaption("The envelope is at PC-A, the sender — it travels once Layer 1 turns the frame into bits."); }
+  $("stepcount").textContent=`Step ${Math.max(idx,0)} / ${steps.length-1}`;
+  $("stepBtn").textContent = idx>=steps.length-1 ? "Step ⏭ (end)" : "Step ⏭";
+  // new section: journey capsule + packet view + detail card follow the same state
+  syncJourney();
+  syncPacket();
+  updateCard();
+}
+function reset(){
+  stopPlay();
+  pinned=null;
+  const msg=($("msg").value||"Hello Network").trim()||"Hello Network";
+  steps=buildSteps(msg); idx=0; render();
+}
+function next(){ pinned=null; if(idx<steps.length-1){ idx++; render(); } else stopPlay(); }
+function back(){ pinned=null; if(idx>0){ idx--; render(); } }
+function stopPlay(){ if(timer){ clearInterval(timer); timer=null; $("playBtn").textContent="▶ Play"; } }
+$("stepBtn").onclick=()=>{ stopPlay(); next(); };
+$("backBtn").onclick=()=>{ stopPlay(); back(); };
+$("resetBtn").onclick=reset;
+$("msg").addEventListener("change", reset);
+$("playBtn").onclick=()=>{
+  if(timer){ stopPlay(); return; }
+  if(idx>=steps.length-1) idx=0;
+  $("playBtn").textContent="⏸ Pause";
+  timer=setInterval(()=>{ if(idx>=steps.length-1){ stopPlay(); } else if(travelBusy){ /* hold this step until the envelope finishes travelling */ } else next(); }, parseInt($("speed").value,10));
+};
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT" && e.target.type==="text") return;
+  if(e.key==="ArrowRight"||e.key===" "){ e.preventDefault(); stopPlay(); next(); }
+  if(e.key==="ArrowLeft"){ stopPlay(); back(); }
+});
+reset();
+</script>
+</body>
+</html>
