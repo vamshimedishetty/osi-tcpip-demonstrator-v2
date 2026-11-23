@@ -54,7 +54,7 @@
   #hopCaption{ margin-top:9px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px 12px;
     font-size:13.5px; color:#92400e; }
 
-  /* ---------- two models · tappable layers · through-the-layers ---------- */
+  /* ---------- two models · tappable layers · packet at this layer ---------- */
   .models-grid{ display:grid; grid-template-columns:1.12fr .88fr; gap:20px; align-items:start; }
   @media (max-width: 900px){ .models-grid{ grid-template-columns:1fr; } }
   .models h3{ font-size:13px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
@@ -76,29 +76,10 @@
   .modelpick{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
   .modelpick label{ font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
   .modelpick select{ font-size:15px; font-weight:700; padding:8px 12px; border:2px solid var(--l3); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; font-family:inherit; }
-  .stackcol[hidden], .jstack[hidden]{ display:none !important; }
-  .jstack{ position:relative; }
-  .jstack::before{ content:""; position:absolute; left:28px; top:12px; bottom:46px; width:3px;
-    background:#e2e8f0; border-radius:2px; }
-  .jrow{ height:48px; display:flex; align-items:center; gap:9px; border:2px solid var(--line);
-    border-left:6px solid var(--c); border-radius:8px; padding:6px 10px 6px 58px; background:#fff;
-    opacity:.55; transition:all .3s; cursor:pointer; position:relative; }
-  .jrow .jno{ font-weight:800; font-size:15px; width:18px; text-align:center; color:var(--c); }
-  .jrow .jnm{ font-weight:700; font-size:14px; }
-  .jrow .jchip{ margin-left:auto; font-family:Consolas, monospace; font-size:11px; font-weight:700;
-    background:#f1f5f9; border-radius:6px; padding:3px 7px; white-space:nowrap; }
-  .jrow.active{ opacity:1; background:#fffbeb; box-shadow:0 3px 10px rgba(0,0,0,.10); }
-  .jwire{ height:40px; display:flex; align-items:center; justify-content:center; font-size:12.5px;
-    color:var(--muted); letter-spacing:.04em; }
-  .jwire.active{ color:#92400e; font-weight:800; }
-  .capsule{ position:absolute; left:14px; top:9px; width:30px; height:30px; border-radius:50%; z-index:2;
-    background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px;
-    box-shadow:0 2px 6px rgba(0,0,0,.30); transition:top .55s ease, background .3s; }
-  .capsule.wire{ background:#d97706; }
-  .capsule.delivered{ background:var(--l2); }
+  .stackcol[hidden]{ display:none !important; }
   .jstatus{ margin-top:8px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px;
     padding:8px 12px; font-size:13.5px; color:#92400e; }
-  .jpacket{ margin-top:14px; }
+  .jpacket{ margin-top:0; }
   .jpacket .pdu{ justify-content:flex-start; }
   .jpacket .blk{ font-size:11px; padding:6px 7px; }
   .junit{ margin-top:8px; font-size:13px; color:var(--muted); }
@@ -119,9 +100,19 @@
   .crow .cval{ word-break:break-word; }
   .cardhint{ margin-top:11px; font-size:12px; color:var(--muted); }
 
-  /* ---------- main three columns ---------- */
-  .main{ display:grid; grid-template-columns: 300px 1fr 300px; gap:14px; align-items:start; }
-  @media (max-width: 980px){ .main{ grid-template-columns:1fr; } }
+  /* ---------- sender | receiver side by side, then the message panel below ---------- */
+  .pair{ display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; margin-bottom:14px; }
+  .pair .layer.active{ transform:scale(1.01); }
+  @media (max-width: 640px){
+    .pair{ gap:8px; }
+    .pair .panel{ padding:9px; }
+    .pair .dir{ font-size:16px; }
+    .pair .layer{ padding:6px; gap:5px; margin-bottom:5px; }
+    .pair .layer .no{ font-size:14px; width:14px; }
+    .pair .layer .nm{ font-size:11.5px; }
+    .pair .layer .unit{ font-size:9.5px; }
+    .pair .layer .tcpip{ font-size:9px; padding:2px 5px; }
+  }
   .panel{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
   .dir{ font-size:22px; text-align:center; color:var(--muted); margin-bottom:6px; }
   .layer{ display:flex; align-items:center; gap:9px; border:2px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:7px;
@@ -349,26 +340,6 @@
       <p class="mapnote">Both models describe the <b>same journey</b> — the TCP/IP model just merges some floors into one: OSI <b>7 + 6 + 5 → Application</b> · OSI <b>4 → Transport</b> · OSI <b>3 → Internet</b> · OSI <b>2 + 1 → Network Access</b>. Every row carries the other model's name as a tag. Tap any layer in the stack to see what it does.</p>
     </div>
     <div>
-      <h3>Through the layers — follow the message</h3>
-      <div class="jstack" id="jstackOsi">
-        <div class="jrow" data-osi="7" style="--c:var(--l7)"><span class="jno">7</span><span class="jnm">Application</span><span class="jchip">AH</span></div>
-        <div class="jrow" data-osi="6" style="--c:var(--l6)"><span class="jno">6</span><span class="jnm">Presentation</span><span class="jchip">PH</span></div>
-        <div class="jrow" data-osi="5" style="--c:var(--l5)"><span class="jno">5</span><span class="jnm">Session</span><span class="jchip">SH</span></div>
-        <div class="jrow" data-osi="4" style="--c:var(--l4)"><span class="jno">4</span><span class="jnm">Transport</span><span class="jchip">TH</span></div>
-        <div class="jrow" data-osi="3" style="--c:var(--l3)"><span class="jno">3</span><span class="jnm">Network</span><span class="jchip">NH</span></div>
-        <div class="jrow" data-osi="2" style="--c:var(--l2)"><span class="jno">2</span><span class="jnm">Data Link</span><span class="jchip">DH + DT</span></div>
-        <div class="jrow" data-osi="1" style="--c:var(--l1)"><span class="jno">1</span><span class="jnm">Physical</span><span class="jchip">bits</span></div>
-        <div class="jwire" id="jwire">〰 the wire — bits travel from PC-A to PC-B 〰</div>
-        <div class="capsule" id="capsuleOsi" title="the message">✉</div>
-      </div>
-      <div class="jstack" id="jstackTcpip" hidden>
-        <div class="jrow" data-tcpip="app" style="--c:var(--l7)"><span class="jno">A</span><span class="jnm">Application</span><span class="jchip">AH + PH + SH</span></div>
-        <div class="jrow" data-tcpip="transport" style="--c:var(--l4)"><span class="jno">T</span><span class="jnm">Transport</span><span class="jchip">TH</span></div>
-        <div class="jrow" data-tcpip="internet" style="--c:var(--l3)"><span class="jno">I</span><span class="jnm">Internet</span><span class="jchip">NH</span></div>
-        <div class="jrow" data-tcpip="netaccess" style="--c:var(--l2)"><span class="jno">N</span><span class="jnm">Network Access</span><span class="jchip">DH + DT · bits</span></div>
-        <div class="jwire" id="jwireT">〰 the wire — bits travel from PC-A to PC-B 〰</div>
-        <div class="capsule" id="capsuleTcpip" title="the message">✉</div>
-      </div>
       <div class="jpacket">
         <h3>The packet at this layer</h3>
         <div class="pdu" id="jpacket"></div>
@@ -388,27 +359,12 @@
   </div>
 </div>
 
-<div class="main">
+<div class="pair">
   <!-- SENDER -->
   <div class="panel">
     <h2>Sender — Encapsulation</h2>
     <div class="dir">message goes DOWN ↓</div>
     <div id="senderStack"></div>
-  </div>
-
-  <!-- CENTRE : THE PDU -->
-  <div class="panel">
-    <h2>The message itself — watch it grow, travel, then shrink</h2>
-    <div class="pduwrap"><div class="pdu" id="pdu"><div class="empty-note">Press <b>Step</b> or <b>Play</b> — the message is born at Layer 7, Application.</div></div></div>
-    <div class="meta">
-      <span>Data unit: <b id="unit">—</b></span>
-      <span>Size: <b id="size">—</b></span>
-      <span>TCP/IP layer: <b id="tcpipNow">—</b></span>
-    </div>
-    <div id="bits"></div>
-    <div id="crcbadge">CRC CHECK: MATCH ✓ — frame arrived without damage</div>
-    <div id="success">✅ SUCCESS — the receiver got back the exact original message</div>
-    <div class="narrate" id="narrate"><b>Say this:</b> “Our project shows what happens inside a network when one message is sent. It does not travel naked — every layer wraps it first.”</div>
   </div>
 
   <!-- RECEIVER -->
@@ -417,6 +373,21 @@
     <div class="dir">message comes UP ↑</div>
     <div id="receiverStack"></div>
   </div>
+</div>
+
+<!-- BELOW THE PAIR : THE PDU -->
+<div class="panel">
+  <h2>The message itself — watch it grow, travel, then shrink</h2>
+  <div class="pduwrap"><div class="pdu" id="pdu"><div class="empty-note">Press <b>Step</b> or <b>Play</b> — the message is born at Layer 7, Application.</div></div></div>
+  <div class="meta">
+    <span>Data unit: <b id="unit">—</b></span>
+    <span>Size: <b id="size">—</b></span>
+    <span>TCP/IP layer: <b id="tcpipNow">—</b></span>
+  </div>
+  <div id="bits"></div>
+  <div id="crcbadge">CRC CHECK: MATCH ✓ — frame arrived without damage</div>
+  <div id="success">✅ SUCCESS — the receiver got back the exact original message</div>
+  <div class="narrate" id="narrate"><b>Say this:</b> “Our project shows what happens inside a network when one message is sent. It does not travel naked — every layer wraps it first.”</div>
 </div>
 
 <div class="mapbar">
@@ -460,7 +431,7 @@ function buildStack(elId){
 }
 buildStack("senderStack"); buildStack("receiverStack");
 
-// ---- tappable layers: detail card + "through the layers" journey view ----
+// ---- tappable layers: detail card data ----
 const LAYER_COLORS={7:"#7c3aed",6:"#db2777",5:"#ea580c",4:"#0d9488",3:"#2563eb",2:"#16a34a",1:"#475569"};
 const LAYER_INFO={
   7:{badge:"7", title:"Layer 7 · Application (OSI)", rows:[
@@ -564,69 +535,45 @@ function currentDemoKey(){
 }
 function updateCard(){ showCard(pinned || currentDemoKey()); }
 
-// ---- through-the-layers journey view: one rail per model, both synced to the step engine ----
-const JROW_H=48;
-const TCPIP_RAIL=["Application","Transport","Internet","Network Access"];
+// ---- models-section status line: narrates where the message is, in the vocabulary of the selected model ----
 function syncJourney(){
   const s=steps[idx<0?0:idx];
-  // --- OSI rail: 7 stops, driven by the step's OSI layer ---
-  let layer=null, state, osiStatus;
-  if(s.travel){ state="wire";
-    osiStatus="On the wire → the frame is now only bits, travelling from PC-A to PC-B. Each device reads only its own layer's label."; }
-  else if(s.done){ layer=7; state="delivered";
-    osiStatus="Delivered ✓ — the message is back at Layer 7 · Application, exactly as it was typed."; }
-  else if(s.side==="receiverStack" && s.layer){ layer=s.layer; state="unwrap";
-    osiStatus=`Coming UP ↑ — the message is at Layer ${layer} · ${layerName(layer)}: its header is being removed.`; }
-  else if(s.layer){ layer=s.layer; state="wrap";
-    osiStatus=`Going DOWN ↓ — the message is at Layer ${layer} · ${layerName(layer)}: its header is being added.`; }
-  else { layer=7; state="start";
-    osiStatus="Ready at the sender — the message starts at Layer 7 · Application and travels DOWN through the layers."; }
-  const capO=$("capsuleOsi");
-  capO.style.top = state==="wire" ? (7*JROW_H+5)+"px" : ((7-layer)*JROW_H+9)+"px";
-  capO.classList.toggle("wire", state==="wire");
-  capO.classList.toggle("delivered", state==="delivered");
-  $("jwire").classList.toggle("active", state==="wire");
-  // --- TCP/IP rail: 4 stops, driven by the step's tcpip field ---
-  let tIdx=0, tState, tcpStatus;
-  if(s.travel){ tState="wire";
-    tcpStatus="On the wire → the frame is now only bits, travelling from PC-A to PC-B. Switches read the MAC label, the Router reads the IP label."; }
-  else if(s.done){ tIdx=0; tState="delivered";
-    tcpStatus="Delivered ✓ — the message is back at TCP/IP · Application, exactly as it was typed."; }
-  else if(s.tcpip && s.tcpip!=="—"){ tIdx=TCPIP_RAIL.indexOf(s.tcpip); tState = s.side==="receiverStack" ? "unwrap" : "wrap";
-    tcpStatus = tState==="unwrap"
-      ? `Coming UP ↑ — the message is at TCP/IP · ${s.tcpip}: its header is being removed.`
-      : `Going DOWN ↓ — the message is at TCP/IP · ${s.tcpip}: its header is being added.`; }
-  else { tIdx=0; tState="start";
-    tcpStatus="Ready at the sender — the message starts at TCP/IP · Application and travels DOWN through the layers."; }
-  const capT=$("capsuleTcpip");
-  capT.style.top = tState==="wire" ? (4*JROW_H+5)+"px" : (tIdx*JROW_H+9)+"px";
-  capT.classList.toggle("wire", tState==="wire");
-  capT.classList.toggle("delivered", tState==="delivered");
-  $("jwireT").classList.toggle("active", tState==="wire");
-  // --- active-row highlighting on both rails (the hidden one simply stays correct) ---
-  let ti=0;
-  document.querySelectorAll(".jrow").forEach(el=>{
-    const o=el.getAttribute("data-osi");
-    if(o!==null){ el.classList.toggle("active", state!=="wire" && +o===layer); }
-    else { el.classList.toggle("active", tState!=="wire" && ti===tIdx); ti++; }
-  });
+  let osiStatus, tcpStatus;
+  if(s.travel){
+    osiStatus="On the wire → the frame is now only bits, travelling from PC-A to PC-B. Each device reads only its own layer's label.";
+    tcpStatus="On the wire → the frame is now only bits, travelling from PC-A to PC-B. Switches read the MAC label, the Router reads the IP label.";
+  }
+  else if(s.done){
+    osiStatus="Delivered ✓ — the message is back at Layer 7 · Application, exactly as it was typed.";
+    tcpStatus="Delivered ✓ — the message is back at TCP/IP · Application, exactly as it was typed.";
+  }
+  else if(s.side==="receiverStack" && s.layer){
+    osiStatus=`Coming UP ↑ — the message is at Layer ${s.layer} · ${layerName(s.layer)}: its header is being removed.`;
+    tcpStatus=`Coming UP ↑ — the message is at TCP/IP · ${s.tcpip}: its header is being removed.`;
+  }
+  else if(s.layer){
+    osiStatus=`Going DOWN ↓ — the message is at Layer ${s.layer} · ${layerName(s.layer)}: its header is being added.`;
+    tcpStatus=`Going DOWN ↓ — the message is at TCP/IP · ${s.tcpip}: its header is being added.`;
+  }
+  else {
+    osiStatus="Ready at the sender — the message starts at Layer 7 · Application and travels DOWN through the layers.";
+    tcpStatus="Ready at the sender — the message starts at TCP/IP · Application and travels DOWN through the layers.";
+  }
   $("jstatus").textContent = modelMode==="tcpip" ? tcpStatus : osiStatus;
 }
 
-// ---- journey packet view: the very same header blocks as the main PDU panel, so the packet is visible at every layer ----
+// ---- models-section packet view: the very same header blocks as the main PDU panel, so the packet is visible at every layer ----
 function syncPacket(){
   const s=steps[idx<0?0:idx];
   $("jpacket").innerHTML=s.blocks.map(b=>`<div class="blk ${b.cls}">${b.txt.replace(/</g,"&lt;")}</div>`).join("");
   $("junit").innerHTML="Now it is a: <b>"+s.unit+"</b>";
 }
 
-// ---- model dropdown: show only the chosen model's stack + journey rail ----
+// ---- model dropdown: show only the chosen model's stack ----
 document.getElementById("modelSelect").addEventListener("change",e=>{
   modelMode=e.target.value;
   document.getElementById("stackOsi").hidden = modelMode!=="osi";
   document.getElementById("stackTcpip").hidden = modelMode!=="tcpip";
-  document.getElementById("jstackOsi").hidden = modelMode!=="osi";
-  document.getElementById("jstackTcpip").hidden = modelMode!=="tcpip";
   syncJourney();
   updateCard();
 });
@@ -637,12 +584,6 @@ document.querySelectorAll(".mrow").forEach(el=>el.addEventListener("click",()=>{
   pinned = o ? {osi:+o} : {tcpip:el.getAttribute("data-tcpip")};
   updateCard();
 }));
-document.querySelectorAll(".jrow").forEach(el=>el.addEventListener("click",()=>{
-  const o=el.getAttribute("data-osi");
-  pinned = o ? {osi:+o} : {tcpip:el.getAttribute("data-tcpip")};
-  updateCard();
-}));
-
 // ---- build the step list for a given message ----
 function buildSteps(msg){
   const AH=`[AH: HTTP]`, PH=`[PH: UTF-8]`, SH=`[SH: Session=${SESSION_ID}]`,
@@ -773,7 +714,7 @@ function render(){
   else { setEnv(DEV_X.pcA); setCaption("The envelope is at PC-A, the sender — it travels once Layer 1 turns the frame into bits."); }
   $("stepcount").textContent=`Step ${Math.max(idx,0)} / ${steps.length-1}`;
   $("stepBtn").textContent = idx>=steps.length-1 ? "Step ⏭ (end)" : "Step ⏭";
-  // new section: journey capsule + packet view + detail card follow the same state
+  // models section: status line + packet view + detail card follow the same state
   syncJourney();
   syncPacket();
   updateCard();
